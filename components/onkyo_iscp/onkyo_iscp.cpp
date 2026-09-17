@@ -1,6 +1,7 @@
 #include "onkyo_iscp.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 
@@ -114,16 +115,117 @@ void OnkyoIscp::query_all() {
   this->enqueue_command_("AMTQSTN");
   this->enqueue_command_("SLIQSTN");
   this->enqueue_command_("LMDQSTN");
+  this->enqueue_command_("TFRQSTN");
+}
+
+std::string OnkyoIscp::tone_value_to_code_(float value) {
+  int rounded =
+      static_cast<int>(std::lround(value / 2.0f)) * 2;
+  rounded = std::max(-10, std::min(10,rounded));
+  if (rounded == 0) {
+    return "00";
+  }
+  const char sign = rounded > 0 ? '+' : '-';
+  const int magnitude = std::abs(rounded);
+  char magnitude_character;
+  if (magnitude == 10) {
+    magnitude_character = 'A';
+  } else {
+    magnitude_character =
+        static_cast<char>('0' + magnitude);
+  }
+  std::string result;
+  result.push_back(sign);
+  result.push_back(magnitude_character);
+  return result;
+}
+
+bool OnkyoIscp::tone_code_to_value_(const std::string &code, float &value) {
+  if (code == "00") {
+    value = 0.0f;
+    return true;
+  }
+  if (code.size() != 2) {
+    return false;
+  }
+  const char sign = code[0];
+  const char magnitude_character = code[1];
+  if (sign != '+' && sign != '-') {
+    return false;
+  }
+  int magnitude;
+  if (magnitude_character == 'A') {
+    magnitude = 10;
+  } else if (magnitude_character >= '0' && magnitude_character <= '9') {
+    magnitude = magnitude_character - '0';
+  } else {
+    return false;
+  }
+  if (
+      magnitude < 0 ||
+      magnitude > 10 ||
+      magnitude % 2 != 0
+  ) {
+    return false;
+  }
+  value = static_cast<float>(
+      sign == '-' ? -magnitude : magnitude
+  );
+  return true;
 }
 
 void OnkyoIscp::set_power(bool state) { this->send_command(state ? "PWR01" : "PWR00"); }
 void OnkyoIscp::set_mute(bool state) { this->send_command(state ? "AMT01" : "AMT00"); }
-
+void OnkyoIscp::set_front_bass(float value) {this->send_command("TFRB" + tone_value_to_code_(value)); }
+void OnkyoIscp::set_front_treble(float value) {this->send_command("TFRT" + tone_value_to_code_(value)); }
 void OnkyoIscp::set_volume(float raw_value) {
   int value = std::max(0, std::min(100, static_cast<int>(raw_value + 0.5f)));
   char command[8];
   std::snprintf(command, sizeof(command), "MVL%02X", value);
   this->send_command(command);
+}
+void OnkyoIscp::process_front_tone_(
+    const std::string &value
+  {
+  size_t position = 0;
+  while (position < value.size()) {
+    const char tone_type = value[position];
+    if (
+        tone_type != '*' &&
+        tone_type != 'T'
+    ) {
+      ESP_LOGW(
+          TAG,
+          "Invalid TFR response: %s",
+          value.c_str()
+      );
+      return;
+    }
+    if (position + 3 > value.size()) {
+      ESP_LOGW( TAG, "Incomplete TFR response: %s", value.c_str());
+      return;
+    }
+    const std::string code =
+        value.substr(position + 1, 2);
+    float tone_value;
+    if (!tone_code_to_value_(code, tone_value)) {
+      ESP_LOGW( TAG, "Invalid TFR tone value: %s", code.c_str());
+      return;
+    }
+    if (
+        tone_type == 'B' &&
+        front_bass_number_ != nullptr
+    ) {
+      front_bass_number_->publish_state(tone_value);
+    }
+     if (
+        tone_type == 'T' &&
+        front_treble_number_ != nullptr
+    ) {
+      front_treble_number_->publish_state(tone_value);
+    }
+    position += 3;
+  }
 }
 
 void OnkyoIscp::set_input(const std::string &input) {
@@ -255,6 +357,8 @@ void OnkyoIscp::process_command_(const std::string &command, const std::string &
     if (!name.empty()) {listening_mode_select_->publish_state(name);
     } else {ESP_LOGW(TAG, "Unknown listening mode code: %s", value.c_str());
     }
+  } else if (command == "TFR") {
+    this->process_front_tone_(value);
   } else if (command == "FLD" && display_sensor_ != nullptr) {
     display_sensor_->publish_state(value);
   } else {
@@ -402,6 +506,8 @@ std::string OnkyoIscp::input_name_to_code_(const std::string &name) {
 void OnkyoPowerSwitch::write_state(bool state) { if (parent_) parent_->set_power(state); }
 void OnkyoMuteSwitch::write_state(bool state) { if (parent_) parent_->set_mute(state); }
 void OnkyoVolumeNumber::control(float value) { if (parent_) parent_->set_volume(value); }
+void OnkyoFrontBassNumber::control(float value) { if (parent_ != nullptr) { parent_->set_front_bass(value); } }
+void OnkyoFrontTrebleNumber::control(float value) { if (parent_ != nullptr) { parent_->set_front_treble(value); } }
 void OnkyoInputSelect::control(const std::string &value) { if (parent_) parent_->set_input(value); }
 void OnkyoVolumeUpButton::press_action() { if (parent_) parent_->send_command("MVLUP"); }
 void OnkyoVolumeDownButton::press_action() { if (parent_) parent_->send_command("MVLDOWN"); }
