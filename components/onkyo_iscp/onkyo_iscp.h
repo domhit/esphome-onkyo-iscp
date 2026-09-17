@@ -136,6 +136,7 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   OnkyoInputSelect *input_select_{nullptr};
   OnkyoListeningModeSelect *listening_mode_select_{nullptr};
   text_sensor::TextSensor *last_frame_sensor_{nullptr};
+  text_sensor::TextSensor *last_unknown_frame_sensor_{nullptr};
   text_sensor::TextSensor *display_sensor_{nullptr};
   binary_sensor::BinarySensor *connected_binary_sensor_{nullptr};
 
