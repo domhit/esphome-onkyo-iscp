@@ -100,6 +100,7 @@ void OnkyoIscp::query_all() {
   this->enqueue_command_("MVLQSTN");
   this->enqueue_command_("AMTQSTN");
   this->enqueue_command_("SLIQSTN");
+  this->enqueue_command_("LMDQSTN");
 }
 
 void OnkyoIscp::set_power(bool state) { this->send_command(state ? "PWR01" : "PWR00"); }
@@ -119,6 +120,15 @@ void OnkyoIscp::set_input(const std::string &input) {
     return;
   }
   this->send_command("SLI" + code);
+}
+
+void OnkyoIscp::set_listening_mode(const std::string &mode) {
+  const std::string code =  listening_mode_name_to_code_(mode);
+  if (code.empty()) {
+    ESP_LOGW(TAG, "Unknown listening mode option: %s", mode.c_str());
+    return;
+  }
+  this->send_command("LMD" + code);
 }
 
 void OnkyoIscp::read_uart_() {
@@ -172,6 +182,11 @@ void OnkyoIscp::process_command_(const std::string &command, const std::string &
   } else if (command == "SLI" && input_select_ != nullptr) {
     const std::string name = input_code_to_name_(value);
     if (!name.empty()) input_select_->publish_state(name);
+  } else if (command == "LMD" && listening_mode_select_ != nullptr) {
+    const std::string name = listening_mode_code_to_name_(value);
+    if (!name.empty()) {listening_mode_select_->publish_state(name);
+    } else {ESP_LOGW(TAG, "Unknown listening mode code: %s", value.c_str());
+    }
   } else if (command == "FLD" && display_sensor_ != nullptr) {
     display_sensor_->publish_state(value);
   } else {
@@ -201,6 +216,105 @@ std::string OnkyoIscp::input_code_to_name_(const std::string &code) {
   return {};
 }
 
+std::string OnkyoIscp::listening_mode_code_to_name_(const std::string &code) {
+  if (code == "00") return "Stereo";
+  if (code == "01") return "Direct";
+  if (code == "02") return "Surround";
+  if (code == "03") return "Game RPG";
+  if (code == "05") return "Game Action";
+  if (code == "06") return "Game Rock";
+  if (code == "08") return "Orchestra";
+  if (code == "09") return "Unplugged";
+  if (code == "0A") return "Studio-Mix";
+  if (code == "0B") return "TV Logic";
+  if (code == "0C") return "All Ch Stereo";
+  if (code == "0D") return "Theater-Dimensional";
+  if (code == "0E") return "Game Sports";
+  if (code == "0F") return "Mono";
+  if (code == "13") return "Full Mono";
+  if (code == "16") return "Audyssey DSX";
+  if (code == "40") return "Straight Decode";
+  if (code == "42") return "THX Cinema";
+  if (code == "43") return "THX Surround EX";
+  if (code == "44") return "THX Music";
+  if (code == "45") return "THX Games";
+  if (code == "50") return "THX Cinema 2";
+  if (code == "51") return "THX Music Mode";
+  if (code == "52") return "THX Games Mode";
+  if (code == "80") return "PLII/PLIIx Movie";
+  if (code == "81") return "PLII/PLIIx Music";
+  if (code == "82") return "Neo:6 Cinema";
+  if (code == "83") return "Neo:6 Music";
+  if (code == "84") return "PLII/PLIIx THX Cinema";
+  if (code == "85") return "Neo:6 THX Cinema";
+  if (code == "86") return "PLII/PLIIx Game";
+  if (code == "89") return "PLII/PLIIx THX Games";
+  if (code == "8A") return "Neo:6 THX Games";
+  if (code == "8B") return "PLII/PLIIx THX Music";
+  if (code == "8C") return "Neo:6 THX Music";
+  if (code == "90") return "PLIIz Height";
+  if (code == "94") return "PLIIz Height + THX Cinema";
+  if (code == "95") return "PLIIz Height + THX Music";
+  if (code == "96") return "PLIIz Height + THX Games";
+  if (code == "A0") return "PLII/PLIIx Movie + Audyssey DSX";
+  if (code == "A1") return "PLII/PLIIx Music + Audyssey DSX";
+  if (code == "A2") return "PLII/PLIIx Game + Audyssey DSX";
+  if (code == "A3") return "Neo:6 Cinema + Audyssey DSX";
+  if (code == "A4") return "Neo:6 Music + Audyssey DSX";
+  return {};
+}
+
+std::string OnkyoIscp::listening_mode_name_to_code_(const std::string &name) {
+  static const char *const options[][2] = {
+      {"Stereo", "00"},
+      {"Direct", "01"},
+      {"Surround", "02"},
+      {"Game RPG", "03"},
+      {"Game Action", "05"},
+      {"Game Rock", "06"},
+      {"Orchestra", "08"},
+      {"Unplugged", "09"},
+      {"Studio-Mix", "0A"},
+      {"TV Logic", "0B"},
+      {"All Ch Stereo", "0C"},
+      {"Theater-Dimensional", "0D"},
+      {"Game Sports", "0E"},
+      {"Mono", "0F"},
+      {"Full Mono", "13"},
+      {"Audyssey DSX", "16"},
+      {"Straight Decode", "40"},
+      {"THX Cinema", "42"},
+      {"THX Surround EX", "43"},
+      {"THX Music", "44"},
+      {"THX Games", "45"},
+      {"THX Cinema 2", "50"},
+      {"THX Music Mode", "51"},
+      {"THX Games Mode", "52"},
+      {"PLII/PLIIx Movie", "80"},
+      {"PLII/PLIIx Music", "81"},
+      {"Neo:6 Cinema", "82"},
+      {"Neo:6 Music", "83"},
+      {"PLII/PLIIx THX Cinema", "84"},
+      {"Neo:6 THX Cinema", "85"},
+      {"PLII/PLIIx Game", "86"},
+      {"PLII/PLIIx THX Games", "89"},
+      {"Neo:6 THX Games", "8A"},
+      {"PLII/PLIIx THX Music", "8B"},
+      {"Neo:6 THX Music", "8C"},
+      {"PLIIz Height", "90"},
+      {"PLIIz Height + THX Cinema", "94"},
+      {"PLIIz Height + THX Music", "95"},
+      {"PLIIz Height + THX Games", "96"},
+      {"PLII/PLIIx Movie + Audyssey DSX", "A0"},
+      {"PLII/PLIIx Music + Audyssey DSX", "A1"},     
+      {"PLII/PLIIx Game + Audyssey DSX", "A2"},
+      {"Neo:6 Cinema + Audyssey DSX", "A3"},
+      {"Neo:6 Music + Audyssey DSX", "A4"},
+  };
+  for (const auto &option : options) if (name == option[0]) return option[1];
+  return {};
+}
+
 std::string OnkyoIscp::input_name_to_code_(const std::string &name) {
   static const char *const options[][2] = {
       {"VCR/DVR", "00"}, {"CBL/SAT", "01"}, {"GAME/TV", "02"}, {"AUX1", "03"},
@@ -220,5 +334,6 @@ void OnkyoInputSelect::control(const std::string &value) { if (parent_) parent_-
 void OnkyoVolumeUpButton::press_action() { if (parent_) parent_->send_command("MVLUP"); }
 void OnkyoVolumeDownButton::press_action() { if (parent_) parent_->send_command("MVLDOWN"); }
 void OnkyoQueryAllButton::press_action() { if (parent_) parent_->query_all(); }
+void OnkyoListeningModeSelect::control(const std::string &value) { if (parent_) parent_->set_listening_mode(value); }
 
 }  // namespace esphome::onkyo_iscp

@@ -50,6 +50,14 @@ class OnkyoInputSelect : public select::Select {
   OnkyoIscp *parent_{nullptr};
 };
 
+class OnkyoListeningModeSelect : public select::Select {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+ protected:
+  void control(const std::string &value) override;
+  OnkyoIscp *parent_{nullptr};
+};
+
 class OnkyoVolumeUpButton : public button::Button {
  public:
   void set_parent(OnkyoIscp *parent) { parent_ = parent; }
@@ -87,7 +95,7 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   void set_mute(bool state);
   void set_volume(float raw_value);
   void set_input(const std::string &input);
-
+  void set_listening_mode(const std::string &listening_mode);
   void set_connected_binary_sensor(binary_sensor::BinarySensor *entity) { connected_binary_sensor_ = entity;}
   void set_power_switch(OnkyoPowerSwitch *entity) { power_switch_ = entity; }
   void set_mute_switch(OnkyoMuteSwitch *entity) { mute_switch_ = entity; }
@@ -95,6 +103,7 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   void set_input_select(OnkyoInputSelect *entity) { input_select_ = entity; }
   void set_last_frame_sensor(text_sensor::TextSensor *entity) { last_frame_sensor_ = entity; }
   void set_display_sensor(text_sensor::TextSensor *entity) { display_sensor_ = entity; }
+  void set_listening_mode_select(OnkyoListeningModeSelect *entity) { listening_mode_select_ = entity; }
 
  protected:
   void read_uart_();
@@ -108,6 +117,8 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   static std::string normalize_frame_(std::string frame);
   static std::string input_code_to_name_(const std::string &code);
   static std::string input_name_to_code_(const std::string &name);
+  static std::string listening_mode_code_to_name_(const std::string &code);
+  static std::string listening_mode_name_to_code_(const std::string &name);
 
   std::string rx_buffer_;
   std::deque<std::string> command_queue_;
@@ -122,9 +133,11 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   OnkyoMuteSwitch *mute_switch_{nullptr};
   OnkyoVolumeNumber *volume_number_{nullptr};
   OnkyoInputSelect *input_select_{nullptr};
+  OnkyoListeningModeSelect *listening_mode_select_{nullptr};
   text_sensor::TextSensor *last_frame_sensor_{nullptr};
   text_sensor::TextSensor *display_sensor_{nullptr};
   binary_sensor::BinarySensor *connected_binary_sensor_{nullptr};
+
 };
 
 template<typename... Ts> class SendCommandAction final : public Action<Ts...> {
