@@ -190,7 +190,11 @@ void OnkyoIscp::process_command_(const std::string &command, const std::string &
   } else if (command == "FLD" && display_sensor_ != nullptr) {
     display_sensor_->publish_state(value);
   } else {
-    ESP_LOGV(TAG, "Unhandled command %s value %s", command.c_str(), value.c_str());
+    const std::string unknown_frame = command + value;
+    ESP_LOGD(TAG, "Unhandled ISCP frame: %s", unknown_frame.c_str());
+    if (last_unknown_frame_sensor_ != nullptr) {
+      last_unknown_frame_sensor_->publish_state(unknown_frame);
+    }
   }
 }
 

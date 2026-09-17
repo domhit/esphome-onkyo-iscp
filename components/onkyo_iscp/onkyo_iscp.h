@@ -102,6 +102,7 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   void set_volume_number(OnkyoVolumeNumber *entity) { volume_number_ = entity; }
   void set_input_select(OnkyoInputSelect *entity) { input_select_ = entity; }
   void set_last_frame_sensor(text_sensor::TextSensor *entity) { last_frame_sensor_ = entity; }
+  void set_last_unknown_frame_sensor(text_sensor::TextSensor *entity) { last_unknown_frame_sensor_ = entity; }
   void set_display_sensor(text_sensor::TextSensor *entity) { display_sensor_ = entity; }
   void set_listening_mode_select(OnkyoListeningModeSelect *entity) { listening_mode_select_ = entity; }
 
