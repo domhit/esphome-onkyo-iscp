@@ -1,0 +1,103 @@
+substitutions:
+  device_name: onkyo-tx-sr608
+  friendly_name: Onkyo TX-SR608
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+
+esp8266:
+  board: nodemcuv2
+
+# GPIO1/GPIO3 are used by the Onkyo hardware UART.
+logger:
+  baud_rate: 0
+  level: DEBUG
+
+api:
+  encryption:
+    key: !secret onkyo_api_key
+
+ota:
+  - platform: esphome
+    password: !secret onkyo_ota_password
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    ssid: "Onkyo Fallback"
+    password: !secret fallback_password
+
+captive_portal:
+
+external_components:
+  - source:
+      type: local
+      path: ../components
+    components: [onkyo_iscp]
+
+uart:
+  id: onkyo_uart
+  tx_pin: GPIO1
+  rx_pin: GPIO3
+  baud_rate: 9600
+  data_bits: 8
+  parity: NONE
+  stop_bits: 1
+  rx_buffer_size: 512
+
+onkyo_iscp:
+  id: onkyo_receiver
+  uart_id: onkyo_uart
+  update_interval: 30s
+
+switch:
+  - platform: onkyo_iscp
+    onkyo_iscp_id: onkyo_receiver
+    power:
+      name: Power
+      icon: mdi:power
+    mute:
+      name: Mute
+      icon: mdi:volume-mute
+
+number:
+  - platform: onkyo_iscp
+    onkyo_iscp_id: onkyo_receiver
+    master_volume:
+      name: Lautstärke Rohwert
+      mode: slider
+
+select:
+  - platform: onkyo_iscp
+    onkyo_iscp_id: onkyo_receiver
+    input:
+      name: Eingang
+
+button:
+  - platform: onkyo_iscp
+    onkyo_iscp_id: onkyo_receiver
+    volume_up:
+      name: Lauter
+    volume_down:
+      name: Leiser
+    query_all:
+      name: Status vollständig abfragen
+
+text_sensor:
+  - platform: onkyo_iscp
+    onkyo_iscp_id: onkyo_receiver
+    last_frame:
+      name: Letzter ISCP-Frame
+    display:
+      name: Display
+      disabled_by_default: true
+
+# Beispiel für einen noch nicht als eigene Entität implementierten Rohbefehl:
+# interval:
+#   - interval: 10min
+#     then:
+#       - onkyo_iscp.send:
+#           id: onkyo_receiver
+#           command: DIMQSTN

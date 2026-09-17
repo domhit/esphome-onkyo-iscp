@@ -1,0 +1,130 @@
+#pragma once
+
+#include <deque>
+#include <string>
+
+#include "esphome/core/automation.h"
+#include "esphome/core/component.h"
+#include "esphome/components/button/button.h"
+#include "esphome/components/number/number.h"
+#include "esphome/components/select/select.h"
+#include "esphome/components/switch/switch.h"
+#include "esphome/components/text_sensor/text_sensor.h"
+#include "esphome/components/uart/uart.h"
+
+namespace esphome::onkyo_iscp {
+
+class OnkyoIscp;
+
+class OnkyoPowerSwitch : public switch_::Switch {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+ protected:
+  void write_state(bool state) override;
+  OnkyoIscp *parent_{nullptr};
+};
+
+class OnkyoMuteSwitch : public switch_::Switch {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+ protected:
+  void write_state(bool state) override;
+  OnkyoIscp *parent_{nullptr};
+};
+
+class OnkyoVolumeNumber : public number::Number {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+ protected:
+  void control(float value) override;
+  OnkyoIscp *parent_{nullptr};
+};
+
+class OnkyoInputSelect : public select::Select {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+ protected:
+  void control(const std::string &value) override;
+  OnkyoIscp *parent_{nullptr};
+};
+
+class OnkyoVolumeUpButton : public button::Button {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+ protected:
+  void press_action() override;
+  OnkyoIscp *parent_{nullptr};
+};
+
+class OnkyoVolumeDownButton : public button::Button {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+ protected:
+  void press_action() override;
+  OnkyoIscp *parent_{nullptr};
+};
+
+class OnkyoQueryAllButton : public button::Button {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+ protected:
+  void press_action() override;
+  OnkyoIscp *parent_{nullptr};
+};
+
+class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
+ public:
+  void setup() override;
+  void loop() override;
+  void update() override;
+  void dump_config() override;
+
+  void send_command(const std::string &command);
+  void query_all();
+  void set_power(bool state);
+  void set_mute(bool state);
+  void set_volume(float raw_value);
+  void set_input(const std::string &input);
+
+  void set_power_switch(OnkyoPowerSwitch *entity) { power_switch_ = entity; }
+  void set_mute_switch(OnkyoMuteSwitch *entity) { mute_switch_ = entity; }
+  void set_volume_number(OnkyoVolumeNumber *entity) { volume_number_ = entity; }
+  void set_input_select(OnkyoInputSelect *entity) { input_select_ = entity; }
+  void set_last_frame_sensor(text_sensor::TextSensor *entity) { last_frame_sensor_ = entity; }
+  void set_display_sensor(text_sensor::TextSensor *entity) { display_sensor_ = entity; }
+
+ protected:
+  void read_uart_();
+  void process_frame_(std::string frame);
+  void process_command_(const std::string &command, const std::string &value);
+  void enqueue_command_(const std::string &command);
+  void process_queue_();
+
+  static std::string normalize_frame_(std::string frame);
+  static std::string input_code_to_name_(const std::string &code);
+  static std::string input_name_to_code_(const std::string &name);
+
+  std::string rx_buffer_;
+  std::deque<std::string> command_queue_;
+  uint32_t last_command_ms_{0};
+  static constexpr uint32_t COMMAND_GAP_MS = 100;
+  static constexpr size_t MAX_FRAME_LENGTH = 160;
+
+  OnkyoPowerSwitch *power_switch_{nullptr};
+  OnkyoMuteSwitch *mute_switch_{nullptr};
+  OnkyoVolumeNumber *volume_number_{nullptr};
+  OnkyoInputSelect *input_select_{nullptr};
+  text_sensor::TextSensor *last_frame_sensor_{nullptr};
+  text_sensor::TextSensor *display_sensor_{nullptr};
+};
+
+template<typename... Ts> class SendCommandAction final : public Action<Ts...> {
+ public:
+  explicit SendCommandAction(OnkyoIscp *parent) : parent_(parent) {}
+  TEMPLATABLE_VALUE(std::string, command)
+  void play(Ts... x) override { parent_->send_command(this->command_.value(x...)); }
+ protected:
+  OnkyoIscp *parent_;
+};
+
+}  // namespace esphome::onkyo_iscp
