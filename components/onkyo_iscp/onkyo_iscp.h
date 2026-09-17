@@ -5,12 +5,14 @@
 
 #include "esphome/core/automation.h"
 #include "esphome/core/component.h"
+#include "esphome/components/binary_sensor/binary_sensor.h"
 #include "esphome/components/button/button.h"
 #include "esphome/components/number/number.h"
 #include "esphome/components/select/select.h"
 #include "esphome/components/switch/switch.h"
 #include "esphome/components/text_sensor/text_sensor.h"
 #include "esphome/components/uart/uart.h"
+
 
 namespace esphome::onkyo_iscp {
 
@@ -99,6 +101,8 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   void process_command_(const std::string &command, const std::string &value);
   void enqueue_command_(const std::string &command);
   void process_queue_();
+  void mark_receiver_online_();
+  void check_receiver_timeout_();
 
   static std::string normalize_frame_(std::string frame);
   static std::string input_code_to_name_(const std::string &code);
@@ -109,6 +113,9 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   uint32_t last_command_ms_{0};
   static constexpr uint32_t COMMAND_GAP_MS = 100;
   static constexpr size_t MAX_FRAME_LENGTH = 160;
+  uint32_t last_valid_frame_ms_{0};
+  bool receiver_online_{false};
+  static constexpr uint32_t RECEIVER_TIMEOUT_MS = 75000;
 
   OnkyoPowerSwitch *power_switch_{nullptr};
   OnkyoMuteSwitch *mute_switch_{nullptr};
@@ -116,6 +123,7 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   OnkyoInputSelect *input_select_{nullptr};
   text_sensor::TextSensor *last_frame_sensor_{nullptr};
   text_sensor::TextSensor *display_sensor_{nullptr};
+  binary_sensor::BinarySensor *connected_binary_sensor_{nullptr};*
 };
 
 template<typename... Ts> class SendCommandAction final : public Action<Ts...> {

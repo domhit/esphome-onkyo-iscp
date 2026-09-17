@@ -13,6 +13,9 @@ static const char *const TAG = "onkyo_iscp";
 
 void OnkyoIscp::setup() {
   rx_buffer_.reserve(MAX_FRAME_LENGTH);
+  if (connected_binary_sensor_ != nullptr) {
+    connected_binary_sensor_->publish_state(false);
+}
   ESP_LOGI(TAG, "Onkyo ISCP UART component started");
   this->query_all();
 }
@@ -25,9 +28,50 @@ void OnkyoIscp::dump_config() {
 void OnkyoIscp::loop() {
   this->read_uart_();
   this->process_queue_();
+  this->check_receiver_timeout_();
 }
 
 void OnkyoIscp::update() { this->query_all(); }
+
+void OnkyoIscp::mark_receiver_online_() {
+  last_valid_frame_ms_ = millis();
+
+  if (receiver_online_) {
+    return;
+  }
+
+  receiver_online_ = true;
+
+  ESP_LOGI(TAG, "Receiver communication established");
+
+  if (connected_binary_sensor_ != nullptr) {
+    connected_binary_sensor_->publish_state(true);
+  }
+}
+
+void OnkyoIscp::check_receiver_timeout_() {
+  if (!receiver_online_) {
+    return;
+  }
+
+  const uint32_t now = millis();
+
+  if (now - last_valid_frame_ms_ <= RECEIVER_TIMEOUT_MS) {
+    return;
+  }
+
+  receiver_online_ = false;
+
+  ESP_LOGW(
+      TAG,
+      "Receiver communication timeout after %u ms",
+      RECEIVER_TIMEOUT_MS
+  );
+
+  if (connected_binary_sensor_ != nullptr) {
+    connected_binary_sensor_->publish_state(false);
+  }
+}
 
 void OnkyoIscp::send_command(const std::string &command) {
   if (command.empty()) return;
@@ -107,6 +151,7 @@ std::string OnkyoIscp::normalize_frame_(std::string frame) {
 void OnkyoIscp::process_frame_(std::string frame) {
   frame = normalize_frame_(std::move(frame));
   if (frame.size() < 3) return;
+  this->mark_receiver_online_();
   ESP_LOGD(TAG, "RX: %s", frame.c_str());
   this->status_clear_warning();
   if (last_frame_sensor_ != nullptr) last_frame_sensor_->publish_state(frame);

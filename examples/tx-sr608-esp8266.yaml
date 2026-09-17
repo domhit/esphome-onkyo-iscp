@@ -52,6 +52,13 @@ onkyo_iscp:
   uart_id: onkyo_uart
   update_interval: 30s
 
+binary_sensor:
+  - platform: onkyo_iscp
+    onkyo_iscp_id: onkyo_receiver
+
+    connected:
+      name: Receiver verbunden
+      
 switch:
   - platform: onkyo_iscp
     onkyo_iscp_id: onkyo_receiver
