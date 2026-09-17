@@ -17,7 +17,7 @@ void OnkyoIscp::setup() {
     connected_binary_sensor_->publish_state(false);
 }
   ESP_LOGI(TAG, "Onkyo ISCP UART component started");
-  this->query_all();
+  this->enqueue_command_("PWRQSTN");
 }
 
 void OnkyoIscp::dump_config() {
@@ -31,7 +31,10 @@ void OnkyoIscp::loop() {
   this->check_receiver_timeout_();
 }
 
-void OnkyoIscp::update() { this->query_all(); }
+void OnkyoIscp::update() { 
+  ESP_LOGV(TAG, "Sending receiver heartbeat");
+  this->enqueue_command_("PWRQSTN"); 
+}
 
 void OnkyoIscp::mark_receiver_online_() {
   last_valid_frame_ms_ = millis();
@@ -47,6 +50,7 @@ void OnkyoIscp::mark_receiver_online_() {
   if (connected_binary_sensor_ != nullptr) {
     connected_binary_sensor_->publish_state(true);
   }
+  this->query_all();
 }
 
 void OnkyoIscp::check_receiver_timeout_() {
