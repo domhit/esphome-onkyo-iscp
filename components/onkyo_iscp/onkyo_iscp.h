@@ -88,6 +88,7 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   void set_volume(float raw_value);
   void set_input(const std::string &input);
 
+  void set_connected_binary_sensor(binary_sensor::BinarySensor *entity) { connected_binary_sensor_ = entity;}
   void set_power_switch(OnkyoPowerSwitch *entity) { power_switch_ = entity; }
   void set_mute_switch(OnkyoMuteSwitch *entity) { mute_switch_ = entity; }
   void set_volume_number(OnkyoVolumeNumber *entity) { volume_number_ = entity; }
