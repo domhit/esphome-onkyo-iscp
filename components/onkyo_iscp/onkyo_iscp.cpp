@@ -20,7 +20,6 @@ void OnkyoIscp::setup() {
 void OnkyoIscp::dump_config() {
   ESP_LOGCONFIG(TAG, "Onkyo ISCP:");
   LOG_UPDATE_INTERVAL(this);
-  this->check_uart_settings(9600, 1, uart::UART_CONFIG_PARITY_NONE, 8);
 }
 
 void OnkyoIscp::loop() {

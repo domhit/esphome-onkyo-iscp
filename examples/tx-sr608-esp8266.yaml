@@ -20,7 +20,7 @@ api:
 
 ota:
   - platform: esphome
-    password: !secret onkyo_ota_password
+    encryption:
 
 wifi:
   ssid: !secret wifi_ssid
