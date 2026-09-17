@@ -2,7 +2,7 @@
 
 <p align="center">
     <img
-        src="images/tx-sr608-uart-testpoints.jpg"
+        src="images/tx-sr608-uart-testpoints.png"
         alt="UART-Testpunkte auf dem TX-SR608 Mainboard"
         width="700">
     <br>
