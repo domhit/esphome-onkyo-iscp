@@ -46,7 +46,7 @@ class OnkyoFrontBassNumber : public number::Number {
  public:
   void set_parent(OnkyoIscp *parent) { parent_ = parent; }
  protected:
-  void control(float*value) override;
+  void control(float value) override;
   OnkyoIscp *parent_{nullptr};
 };
 

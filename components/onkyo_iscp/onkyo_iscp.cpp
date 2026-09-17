@@ -185,7 +185,7 @@ void OnkyoIscp::set_volume(float raw_value) {
   this->send_command(command);
 }
 void OnkyoIscp::process_front_tone_(
-    const std::string &value
+    const std::string &value)
   {
   size_t position = 0;
   while (position < value.size()) {
