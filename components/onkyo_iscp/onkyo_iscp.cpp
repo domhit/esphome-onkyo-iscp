@@ -16,6 +16,15 @@ void OnkyoIscp::setup() {
   if (connected_binary_sensor_ != nullptr) {
     connected_binary_sensor_->publish_state(false);
 }
+
+  if (last_frame_sensor_ != nullptr) {
+  last_frame_sensor_->publish_state("none");
+  }
+
+  if (last_unknown_frame_sensor_ != nullptr) {
+  last_unknown_frame_sensor_->publish_state("none");
+  }
+
   ESP_LOGI(TAG, "Onkyo ISCP UART component started");
   this->enqueue_command_("PWRQSTN");
 }
@@ -146,6 +155,11 @@ void OnkyoIscp::read_uart_() {
       }
       continue;
     }
+        if (value == '!') {
+      rx_buffer_.clear();
+      rx_buffer_.push_back('!');
+      continue;
+    }
     if (rx_buffer_.size() >= MAX_FRAME_LENGTH) {
       ESP_LOGW(TAG, "UART frame overflow, buffer cleared");
       rx_buffer_.clear();
@@ -156,12 +170,71 @@ void OnkyoIscp::read_uart_() {
   }
 }
 
+bool OnkyoIscp::is_valid_ascii_frame_(
+    const std::string &frame
+) {
+  if (frame.empty()) {
+    return false;
+  }
+
+  for (const unsigned char character : frame) {
+    if (character < 0x20 || character > 0x7E) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 std::string OnkyoIscp::normalize_frame_(std::string frame) {
-  while (!frame.empty() && static_cast<uint8_t>(frame.front()) < 0x20) frame.erase(frame.begin());
-  if (frame.rfind("!1", 0) == 0) frame.erase(0, 2);
+  const size_t start = frame.rfind("!1");
+  if (start == std::string::npos) {
+    return {};
+  }
+  frame.erase(0, start + 2);
   return frame;
 }
 
+void OnkyoIscp::process_frame_(std::string frame) {
+  if (!is_valid_ascii_frame_(frame)) {
+    ESP_LOGW(TAG, "Discarding non-ASCII UART frame (%u bytes)", static_cast<unsigned int>(frame.size()));
+    return;
+  }
+  frame = normalize_frame_(std::move(frame));
+  if (frame.size() < 3) {
+    ESP_LOGV(TAG, "Discarding invalid ISCP frame");
+    return;
+  }
+  const std::string command = frame.substr(0, 3);
+  for (const unsigned char character : command) {
+    const bool valid =
+        (character >= 'A' && character <= 'Z') ||
+        (character >= '0' && character <= '9');
+
+    if (!valid) {
+      ESP_LOGW(
+          TAG,
+          "Discarding frame with invalid command"
+      );
+      return;
+    }
+  }
+
+  this->mark_receiver_online_();
+
+  ESP_LOGD(TAG, "RX: %s", frame.c_str());
+
+  this->status_clear_warning();
+
+  if (last_frame_sensor_ != nullptr) {
+    last_frame_sensor_->publish_state(frame);
+  }
+
+  this->process_command_(
+      command,
+      frame.substr(3)
+  );
+}
 void OnkyoIscp::process_frame_(std::string frame) {
   frame = normalize_frame_(std::move(frame));
   if (frame.size() < 3) return;

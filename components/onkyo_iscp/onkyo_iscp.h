@@ -129,6 +129,7 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   uint32_t last_valid_frame_ms_{0};
   bool receiver_online_{false};
   static constexpr uint32_t RECEIVER_TIMEOUT_MS = 75000;
+  static bool is_valid_ascii_frame_(const std::string &frame);
 
   OnkyoPowerSwitch *power_switch_{nullptr};
   OnkyoMuteSwitch *mute_switch_{nullptr};
