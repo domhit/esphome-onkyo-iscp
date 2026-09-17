@@ -1,16 +1,20 @@
-# Geplanter Anschluss
+## UART-Testpunkte
 
-Nach aktuellem Stand des Serviceplans:
+<p align="center">
+    <img
+        src="images/tx-sr608-uart-testpoints.jpg"
+        alt="UART-Testpunkte auf dem TX-SR608 Mainboard"
+        width="700">
+    <br>
+    <em>UART-Testpunkte am Mainboard
 
-- P751A Pin 3: FSI/FLRXD, Prozessor-RX, Verbindung zum ESP-TX
-- P751A Pin 7: FSO/FLTXD, Prozessor-TX, Verbindung zum ESP-RX
-- P751A Pin 8: vermutete Masse, vor Anschluss messen
-- P751A Pin 5: +3.3VMPU, nicht zur ESP-Versorgung verwenden
+Die UART-Verbindung erfolgt direkt über die Testpunkte auf dem Mainboard:
 
-## Vor Anschluss verifizieren
+- RXD → ESP8266 GPIO1 / TX
+- TXD → ESP8266 GPIO3 / RX
+- GND → ESP8266 GND
 
-1. Receiver stromlos und vom Netz getrennt.
-2. Widerstand Pin 8 gegen Gehäusemasse messen. Erwartung nahe 0 Ohm.
-3. Receiver unter Beachtung der elektrischen Sicherheit einschalten.
-4. Spannung Pin 5 gegen Pin 8 messen. Erwartung etwa 3,3 V.
-5. UART-Leitungen prüfen. Keine echte RS-232-Pegelwandlung anschließen, solange 3,3-V-TTL nicht bestätigt ist.
+## ESP8266 Stromversorgung
+
+Die Stromversorgung erfolgt durch den USB-Anschluss des WEMOS D1 Mini.
+Interne Stromversorung durch den Onkyo nicht möglich. Getestet wurden +12VD_ST und +10VS die im Standby verfügbar sind. Jedoch nicht genügend Stromlieferfähigkeit, mit ESP8266 über Buck Converter LM2596 angeschlossen sinkt die Spannung auf ~5V und der Reciever lässt sich nicht einschalten.
