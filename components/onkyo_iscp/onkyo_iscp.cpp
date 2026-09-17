@@ -235,15 +235,6 @@ void OnkyoIscp::process_frame_(std::string frame) {
       frame.substr(3)
   );
 }
-void OnkyoIscp::process_frame_(std::string frame) {
-  frame = normalize_frame_(std::move(frame));
-  if (frame.size() < 3) return;
-  this->mark_receiver_online_();
-  ESP_LOGD(TAG, "RX: %s", frame.c_str());
-  this->status_clear_warning();
-  if (last_frame_sensor_ != nullptr) last_frame_sensor_->publish_state(frame);
-  this->process_command_(frame.substr(0, 3), frame.substr(3));
-}
 
 void OnkyoIscp::process_command_(const std::string &command, const std::string &value) {
   if (command == "PWR" && power_switch_ != nullptr) {
