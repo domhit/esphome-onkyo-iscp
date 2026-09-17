@@ -4,7 +4,7 @@ from esphome import automation
 from esphome.components import uart
 from esphome.const import CONF_ID
 
-AUTO_LOAD = ["switch", "number", "select", "button", "text_sensor"]
+AUTO_LOAD = ["binary_sensor", "switch", "number", "select", "button", "text_sensor"]
 DEPENDENCIES = ["uart"]
 MULTI_CONF = True
 
