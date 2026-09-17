@@ -185,46 +185,73 @@ void OnkyoIscp::set_volume(float raw_value) {
   this->send_command(command);
 }
 void OnkyoIscp::process_front_tone_(
-    const std::string &value)
-  {
-  size_t position = 0;
-  while (position < value.size()) {
-    const char tone_type = value[position];
-    if (
-        tone_type != '*' &&
-        tone_type != 'T'
-    ) {
+    const std::string &value
+) {
+  bool parsed_any_value = false;
+
+  const size_t bass_position = value.find('B');
+
+  if (
+      bass_position != std::string::npos &&
+      bass_position + 3 <= value.size()
+  ) {
+    const std::string bass_code =
+        value.substr(bass_position + 1, 2);
+
+    float bass_value;
+
+    if (tone_code_to_value_(bass_code, bass_value)) {
+      parsed_any_value = true;
+
+      if (front_bass_number_ != nullptr) {
+        front_bass_number_->publish_state(bass_value);
+      }
+    } else {
       ESP_LOGW(
           TAG,
-          "Invalid TFR response: %s",
-          value.c_str()
+          "Invalid front bass value: %s",
+          bass_code.c_str()
       );
-      return;
     }
-    if (position + 3 > value.size()) {
-      ESP_LOGW( TAG, "Incomplete TFR response: %s", value.c_str());
-      return;
+  }
+
+  const size_t treble_position = value.find('T');
+
+  if (
+      treble_position != std::string::npos &&
+      treble_position + 3 <= value.size()
+  ) {
+    const std::string treble_code =
+        value.substr(treble_position + 1, 2);
+
+    float treble_value;
+
+    if (tone_code_to_value_(
+            treble_code,
+            treble_value
+        )) {
+      parsed_any_value = true;
+
+      if (front_treble_number_ != nullptr) {
+        front_treble_number_->publish_state(
+            treble_value
+        );
+      }
+    } else {
+      ESP_LOGW(
+          TAG,
+          "Invalid front treble value: %s",
+          treble_code.c_str()
+      );
     }
-    const std::string code =
-        value.substr(position + 1, 2);
-    float tone_value;
-    if (!tone_code_to_value_(code, tone_value)) {
-      ESP_LOGW( TAG, "Invalid TFR tone value: %s", code.c_str());
-      return;
-    }
-    if (
-        tone_type == 'B' &&
-        front_bass_number_ != nullptr
-    ) {
-      front_bass_number_->publish_state(tone_value);
-    }
-     if (
-        tone_type == 'T' &&
-        front_treble_number_ != nullptr
-    ) {
-      front_treble_number_->publish_state(tone_value);
-    }
-    position += 3;
+  }
+
+  if (!parsed_any_value) {
+    ESP_LOGW(
+        TAG,
+        "Invalid TFR response: %s",
+        value.c_str()
+    );
   }
 }
 
