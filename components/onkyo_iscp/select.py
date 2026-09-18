@@ -4,41 +4,25 @@ from esphome.components import select
 
 from . import OnkyoIscp, onkyo_iscp_ns
 from .const import (
+    CONF_AUDIO_SELECTOR,
     CONF_DIMMER,
     CONF_DYNAMIC_VOLUME,
     CONF_INPUT,
     CONF_LATE_NIGHT,
     CONF_LISTENING_MODE,
     CONF_ONKYO_ISCP_ID,
-    CONF_AUDIO_SELECTOR,
+    CONF_PTY,
     CONF_SPEAKER_LAYOUT,
 )
 
 OnkyoInputSelect = onkyo_iscp_ns.class_("OnkyoInputSelect", select.Select)
-OnkyoListeningModeSelect = onkyo_iscp_ns.class_(
-    "OnkyoListeningModeSelect",
-    select.Select,
-)
-OnkyoDynamicVolumeSelect = onkyo_iscp_ns.class_(
-    "OnkyoDynamicVolumeSelect",
-    select.Select,
-)
-OnkyoLateNightSelect = onkyo_iscp_ns.class_(
-    "OnkyoLateNightSelect",
-    select.Select,
-)
-OnkyoDimmerSelect = onkyo_iscp_ns.class_(
-    "OnkyoDimmerSelect",
-    select.Select,
-)
-OnkyoAudioSelectorSelect = onkyo_iscp_ns.class_(
-    "OnkyoAudioSelectorSelect",
-    select.Select,
-)
-OnkyoSpeakerLayoutSelect = onkyo_iscp_ns.class_(
-    "OnkyoSpeakerLayoutSelect",
-    select.Select,
-)
+OnkyoListeningModeSelect = onkyo_iscp_ns.class_("OnkyoListeningModeSelect", select.Select)
+OnkyoDynamicVolumeSelect = onkyo_iscp_ns.class_("OnkyoDynamicVolumeSelect", select.Select)
+OnkyoLateNightSelect = onkyo_iscp_ns.class_("OnkyoLateNightSelect", select.Select)
+OnkyoDimmerSelect = onkyo_iscp_ns.class_( "OnkyoDimmerSelect", select.Select)
+OnkyoAudioSelectorSelect = onkyo_iscp_ns.class_("OnkyoAudioSelectorSelect", select.Select)
+OnkyoSpeakerLayoutSelect = onkyo_iscp_ns.class_("OnkyoSpeakerLayoutSelect", select.Select)
+OnkyoPtySelect = onkyo_iscp_ns.class_("OnkyoPtySelect", select.Select)
 
 INPUT_OPTIONS = [
     "VCR/DVR",
@@ -136,6 +120,41 @@ SPEAKER_LAYOUT_OPTIONS = [
     "Front Wide",
 ]
 
+PTY_OPTIONS = [
+    "None",
+    "News",
+    "Affairs",
+    "Info",
+    "Sport",
+    "Educate",
+    "Drama",
+    "Culture",
+    "Science",
+    "Varied",
+    "Pop M",
+    "Rock M",
+    "Easy M",
+    "Light M",
+    "Classics",
+    "Other M",
+    "Weather",
+    "Finance",
+    "Children",
+    "Social",
+    "Religion",
+    "Phone In",
+    "Travel",
+    "Leisure",
+    "Jazz",
+    "Country",
+    "Nation M",
+    "Oldies",
+    "Folk M",
+    "Document",
+    "TEST",
+    "Alarm",
+]
+
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(CONF_ONKYO_ISCP_ID): cv.use_id(OnkyoIscp),
@@ -166,6 +185,10 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_SPEAKER_LAYOUT): select.select_schema(
             OnkyoSpeakerLayoutSelect,
             icon="mdi:speaker-multiple",
+        ),
+        cv.Optional(CONF_PTY): select.select_schema(
+            OnkyoPtySelect,
+            icon="mdi:radio",
         ),
     }
 )
@@ -217,3 +240,11 @@ async def to_code(config):
         )
         cg.add(var.set_parent(parent))
         cg.add(parent.set_speaker_layout_select(var))
+    if pty_config := config.get(CONF_PTY):
+        var = await select.new_select(
+            pty_config,
+            options=PTY_OPTIONS,
+        )
+        cg.add(var.set_parent(parent))
+        cg.add(parent.set_pty_select(var))
+        

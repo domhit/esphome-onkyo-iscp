@@ -935,6 +935,79 @@ std::string OnkyoIscp::normalize_frame_(std::string frame) {
   return frame;
 }
 
+std::string OnkyoIscp::pty_code_to_name_(const std::string &code) {
+  static const char *const names[] {
+      "None", "News", "Affairs", "Info", "Sport", "Educate", "Drama",
+      "Culture", "Science", "Varied", "Pop M", "Rock M", "Easy M",
+      "Light M", "Classics", "Other M", "Weather", "Finance", "Children",
+      "Social", "Religion", "Phone In", "Travel", "Leisure", "Jazz",
+      "Country", "Nation M", "Oldies", "Folk M", "Document", "TEST", "Alarm",
+  };
+
+  char *end = nullptr;
+  const long value = std::strtol(code.c_str(), &end, 16);
+
+  if (end == code.c_str() || *end != '\0' || value < 0 || value > 31) {
+    return {};
+  }
+
+  return names[value];
+}
+
+std::string OnkyoIscp::pty_name_to_code_(const std::string &name) {
+  static const char *const names[] = {
+      "None", "News", "Affairs", "Info", "Sport", "Educate", "Drama",
+      "Culture", "Science", "VVaried", "Pop M", "Rock M", "Easy M",
+      "Light M", "Classics", "Other M", "Weather", "Finance", "Children",
+      "Social", "Religion", "Phone In", "Travel", "Leisure", "Jazz",
+      "Country", "Nation M", "Oldies", "Folk M", "Document", "TEST", "Alarm",
+  };
+
+  for (int i = 0; i < 32; i++) {
+    if (name == names[i]) {
+      char code[3];
+      std::snprintf(code, sizeof(code), "%02X", i);
+      return code;
+    }
+  }
+
+  return {};
+}
+
+void OnkyoIscp::set_pty(const std::string &pty) {
+  if (tuner_band_ != TunerBand::FM) {
+    ESP_LOGW(TAG, "PTY selection is only available on FM");
+    return;
+  }
+
+  const std::string code = pty_name_to_code_(pty);
+
+  if (code.empty()) {
+    ESP_LOGW(TAG, "Unknown PTY option: %s", pty.c_str());
+    return;
+  }
+
+  this->send_command("PTS" + code);
+}
+
+void OnkyoIscp::start_pty_scan() {
+  if (tuner_band_ != TunerBand::FM) {
+    ESP_LOGW(TAG, "PTY scan is only available on FM");
+    return;
+  }
+
+  this->send_command("PTSSCAN");
+}
+
+void OnkyoIscp::start_tp_scan() {
+  if (tuner_band_ != TunerBand::FM) {
+    ESP_LOGW(TAG, "TP scan is only available on FM");
+    return;
+  }
+
+  this->send_command("TPSSCAN");
+}
+
 void OnkyoIscp::process_frame_(std::string frame) {
   if (!is_valid_ascii_frame_(frame)) {
     ESP_LOGW(TAG, "Discarding non-ASCII UART frame (%u bytes)",
@@ -1117,7 +1190,20 @@ void OnkyoIscp::process_command_(const std::string& command,
   } else {
     ESP_LOGW(TAG, "Unknown RDS response: %s", value.c_str());
   }
+} else if (command == "PTS") {
+    const std::string name = pty_code_to_name_(value);
 
+    if (!name.empty()) {
+      if (pty_select_ != nullptr) {
+        pty_select_->publish_state(name);
+      }
+      ESP_LOGD(TAG, "PTY state: %s", name.c_str());
+    } else {
+      ESP_LOGD(TAG, "PTY response: %s", value.c_str());
+    }
+
+  } else if (command == "TPS") {
+    ESP_LOGD(TAG,*"TP scan response: %s", value.c_st*());
 } else if (command == "FLD" && display_sensor_ != nullptr) {
   display_sensor_->publish_state(value);
 
@@ -1417,6 +1503,23 @@ void OnkyoRdsTpButton::press_action() {
 void OnkyoRdsNextButton::press_action() {
   if (parent_ != nullptr) {
     parent_->show_next_rds_information();
+  }
+}
+void OnkyoPtySelect::control(const std::string &value) {
+  if (parent_ != nullptr) {
+    parent_->set_pty(value);
+  }
+}
+
+void OnkyoPtyScanButton::press_action() {
+  if (parent_ != nullptr) {
+    parent_->start_pty_scan();
+  }
+}
+
+void OnkyoTpScanButton::press_action() {
+  if (parent_ != nullptr) {
+    parent_->start_tp_scan();
   }
 }
 }  // namespace esphome::onkyo_iscp

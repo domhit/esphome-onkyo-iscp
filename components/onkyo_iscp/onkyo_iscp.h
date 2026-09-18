@@ -218,6 +218,15 @@ class OnkyoSpeakerLayoutSelect : public select::Select {
   OnkyoIscp* parent_{nullptr};
 };
 
+class OnkyoPtySelect : public select::Select {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+
+ protected:
+  void control(const std::string &value) override;
+  OnkyoIscp *parent_{nullptr};
+};
+
 //Buttons ####################################################################################
 class OnkyoVolumeUpButton : public button::Button {
  public:
@@ -309,6 +318,24 @@ class OnkyoRdsNextButton : public button::Button {
   OnkyoIscp *parent_{nullptr};
 };
 
+class OnkyoPtyScanButton : public button::Button {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+
+ pr*tected:
+  void press_action() over*ide;
+  OnkyoIscp *parent_{nullptr}*
+};
+
+class OnkyoTpScanButton : pub*ic button::Button {
+ public:
+  voi* set_parent(OnkyoIscp *parent) { p*rent_ = parent; }
+
+ protected:
+  v*id press_action() override;
+  Onky*Iscp *parent_{nullptr};
+};
+
 //Main ####################################################################################
 class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
  public:
@@ -347,6 +374,10 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   void show_rds_pty();
   void show_rds_tp();
   void show_next_rds_information();
+  void set_pty(const std::string &pty);
+  void start_pty_scan();
+  void start_tp_scan();
+
 
   void set_connected_binary_sensor(binary_sensor::BinarySensor* entity) { connected_binary_sensor_ = entity; }
   void set_power_switch(OnkyoPowerSwitch* entity) { power_switch_ = entity; }
@@ -374,6 +405,7 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   void set_fm_frequency_number(OnkyoFmFrequencyNumber *entity) { fm_frequency_number_ = entity; }
   void set_am_frequency_number(OnkyoAmFrequencyNumber *entity) { am_frequency_number_ = entity; }
   void set_tuner_preset_number(OnkyoTunerPresetNumber *entity) { tuner_preset_number_ = entity; }
+  void set_pty_select(OnkyoPtySelect *entity) { pty_select_ = entity;}
 
  protected:
   void read_uart_();
@@ -411,6 +443,8 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   static std::string speaker_layout_name_to_code_(const std::string& name);
   enum class TunerBand : uint8_t { UNKNOWN, FM, AM, };
   TunerBand tuner_band_{TunerBand::UNKNOWN};
+  static std::string pty_code_to_name_(const std::string &code);
+  static std::string pty_name_to_code_(const std::string &name);
 
   std::string rx_buffer_;
   std::deque<std::string> command_queue_;
@@ -446,6 +480,7 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   OnkyoFmFrequencyNumber *fm_frequency_number_{nullptr};
   OnkyoAmFrequencyNumber *am_frequency_number_{nullptr};
   OnkyoTunerPresetNumber *tuner_preset_number_{nullptr};
+  OnkyoPtySelect *pty_select_{nullptr};
   text_sensor::TextSensor* last_frame_sensor_{nullptr};
   text_sensor::TextSensor* last_unknown_frame_sensor_{nullptr};
   text_sensor::TextSensor* display_sensor_{nullptr};

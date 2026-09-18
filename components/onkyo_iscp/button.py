@@ -13,6 +13,8 @@ from .const import (
     CONF_RDS_PTY,
     CONF_RDS_RADIO_TEXT,
     CONF_RDS_TP,
+    CONF_PTY_SCAN,
+    CONF_TP_SCAN,
     CONF_VOLUME_DOWN,
     CONF_VOLUME_UP,
 )
@@ -27,6 +29,8 @@ OnkyoRdsRadioTextButton = onkyo_iscp_ns.class_("OnkyoRdsRadioTextButton", button
 OnkyoRdsPtyButton = onkyo_iscp_ns.class_("OnkyoRdsPtyButton", button.Button)
 OnkyoRdsTpButton = onkyo_iscp_ns.class_("OnkyoRdsTpButton", button.Button)
 OnkyoRdsNextButton = onkyo_iscp_ns.class_("OnkyoRdsNextButton", button.Button)
+OnkyoPtyScanButton = onkyo_iscp_ns.class_("OnkyoPtyScanButton", button.Button)
+OnkyoTpScanButton = onkyo_iscp_ns.class_("OnkyoTpScanButton", button.Button)
 
 CONFIG_SCHEMA = cv.Schema(
     {
@@ -69,6 +73,15 @@ CONFIG_SCHEMA = cv.Schema(
             OnkyoRdsNextButton,
             icon="mdi:skip-next",
         ),
+        cv.Optional(CONF_PTY_SCAN): button.button_schema(
+            OnkyoPtyScanButton,
+            icon="mdi:magnify",
+        ),
+
+        cv.Optional(CONF_TP_SCAN): button.button_schema(
+            OnkyoTpScanButton,
+            icon="mdi:car-search",
+        ),
     }
 )
 
@@ -87,6 +100,8 @@ async def to_code(config):
         CONF_RDS_PTY,
         CONF_RDS_TP,
         CONF_RDS_NEXT,
+        CONF_PTY_SCAN,
+        CONF_TP_SCAN,
     ):
         if button_config := config.get(key):
             var = await button.new_button(button_config)
