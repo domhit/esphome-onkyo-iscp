@@ -131,12 +131,31 @@ void OnkyoIscp::set_audyssey(bool state) {
   this->enqueue_command_("ADYQSTN");
 }
 
-void OnkyoIscp::set_audyssey(bool state) {
+void OnkyoIscp::set_dynamic_eq(bool state) {
   this->send_command(
-      state ? "ADY01" : "ADY00"
+      state ? "ADQ01" : "ADQ00"
   );
 
-  this->enqueue_command_("ADYQSTN");
+  this->enqueue_command_("ADQQSTN");
+}
+
+void OnkyoIscp::set_dynamic_volume(
+    const std::string &mode
+) {
+  const std::string code =
+      dynamic_volume_name_to_code_(mode);
+
+  if (code.empty()) {
+    ESP_LOGW(
+        TAG,
+        "Unknown Dynamic Volume option: %s",
+        mode.c_str()
+    );
+    return;
+  }
+
+  this->send_command("ADV" + code);
+  this->enqueue_command_("ADVQSTN");
 }
 
 std::string OnkyoIscp::dynamic_volume_code_to_name_(
