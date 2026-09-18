@@ -346,7 +346,7 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
 
   void send_command(const std::string& command);
   void query_all();
-
+  void query_video_information();
   void set_power(bool state);
   void set_mute(bool state);
   void set_volume(float raw_value);
