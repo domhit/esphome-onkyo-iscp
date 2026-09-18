@@ -4,7 +4,7 @@ from esphome.components import switch
 from esphome.const import CONF_ID, ENTITY_CATEGORY_CONFIG
 
 from . import OnkyoIscp, onkyo_iscp_ns
-from .const import CONF_AUDYSSEY, CONF_DYNAMIC_EQ, CONF_MUSIC_OPTIMIZER, CONF_MUTE, CONF_ONKYO_ISCP_ID, CONF_POWER, CONF_RE_EQ,
+from .const import CONF_AUDYSSEY, CONF_DYNAMIC_EQ, CONF_MUSIC_OPTIMIZER, CONF_MUTE, CONF_ONKYO_ISCP_ID, CONF_POWER, CONF_RE_EQ
 OnkyoPowerSwitch = onkyo_iscp_ns.class_("OnkyoPowerSwitch", switch.Switch)
 OnkyoMuteSwitch = onkyo_iscp_ns.class_("OnkyoMuteSwitch", switch.Switch)
 OnkyoAudysseySwitch = onkyo_iscp_ns.class_("OnkyoAudysseySwitch", switch.Switch,)
