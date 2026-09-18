@@ -247,4 +247,3 @@ async def to_code(config):
         )
         cg.add(var.set_parent(parent))
         cg.add(parent.set_pty_select(var))
-        

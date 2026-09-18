@@ -152,7 +152,7 @@ async def to_code(config):
         )
         cg.add(var.set_parent(parent))
         cg.add(parent.set_sleep_timer_number(var))
-        
+
     if fm_config := config.get(CONF_FM_FREQUENCY):
         var = await number.new_number(
             fm_config,

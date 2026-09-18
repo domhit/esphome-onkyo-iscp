@@ -39,6 +39,30 @@ Grundgerüst einer externen ESPHome-Komponente für die serielle 3,3-V-UART-Schn
 - Unknown ISCP frame diagnostics
 - Automatic state synchronization
 
+### v0.3.0
+
+### Tuner
+
+- FM frequency read and control
+- AM frequency read and control
+- Main and Zone 2 tuner notifications
+- Preset selection from 1 to 40
+- Manual tuning state using preset 0
+- Preset next and previous
+- Preset memory
+- RDS display controls
+- PTY selection and search
+- TP search
+
+### RDS limitations
+
+The TX-SR608 acknowledges RDS display commands but no station
+name, Radio Text or PTY content was observed as separate ISCP
+data frames. RDS commands control the receiver display.
+
+PTY and TP searches may return N/A depending on the station,
+broadcast metadata and current reception conditions.
+
 ## Struktur
 
 ```text
