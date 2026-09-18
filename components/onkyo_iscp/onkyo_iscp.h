@@ -34,6 +34,31 @@ class OnkyoMuteSwitch : public switch_::Switch {
   OnkyoIscp *parent_{nullptr};
 };
 
+class OnkyoAudysseySwitch : public switch_::Switch {
+ public:
+  void set_parent(OnkyoIscp *parent) {
+    parent_ = parent;
+  }
+
+ protected:
+  void write_state(bool state) override;
+
+  OnkyoIscp *parent_{nullptr};
+};
+
+
+class OnkyoDynamicEqSwitch : public switch_::Switch {
+ public:
+  void set_parent(OnkyoIscp *parent) {
+    parent_ = parent;
+  }
+
+ protected:
+  void write_state(bool state) override;
+
+  OnkyoIscp *parent_{nullptr};
+};
+
 class OnkyoVolumeNumber : public number::Number {
  public:
   void set_parent(OnkyoIscp *parent) { parent_ = parent; }
@@ -100,6 +125,18 @@ class OnkyoListeningModeSelect : public select::Select {
   OnkyoIscp *parent_{nullptr};
 };
 
+class OnkyoDynamicVolumeSelect : public select::Select {
+ public:
+  void set_parent(OnkyoIscp *parent) {
+    parent_ = parent;
+  }
+
+ protected:
+  void control(const std::string &value) override;
+
+  OnkyoIscp *parent_{nullptr};
+};
+
 class OnkyoVolumeUpButton : public button::Button {
  public:
   void set_parent(OnkyoIscp *parent) { parent_ = parent; }
@@ -140,11 +177,17 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   void set_front_treble(float value);
   void set_subwoofer_level(float value);
   void set_center_level(float value);
+  void set_audyssey(bool state);
+  void set_dynamic_eq(bool state);
+  void set_dynamic_volume(const std::string &mode);
   void set_input(const std::string &input);
   void set_listening_mode(const std::string &listening_mode);
   void set_connected_binary_sensor(binary_sensor::BinarySensor *entity) { connected_binary_sensor_ = entity;}
   void set_power_switch(OnkyoPowerSwitch *entity) { power_switch_ = entity; }
   void set_mute_switch(OnkyoMuteSwitch *entity) { mute_switch_ = entity; }
+  void set_audyssey_switch(OnkyoAudysseySwitch *entity) { audyssey_switch_ = entity; }
+  void set_dynamic_eq_switch(OnkyoDynamicEqSwitch *entity) { dynamic_eq_switch_ = entity; }
+  void set_dynamic_volume_select(OnkyoDynamicVolumeSelect *entity) { dynamic_volume_select_ = entity; }
   void set_volume_number(OnkyoVolumeNumber *entity) { volume_number_ = entity; }
   void set_front_bass_number(OnkyoFrontBassNumber *entity) { front_bass_number_ = entity; }
   void set_front_treble_number(OnkyoFrontTrebleNumber *entity) { front_treble_number_ = entity; }
@@ -174,6 +217,8 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   static std::string listening_mode_code_to_name_(const std::string &code);
   static std::string listening_mode_name_to_code_(const std::string &name);
   static std::string tone_value_to_code_(float value);
+  static std::string dynamic_volume_code_to_name_(const std::string &code);
+  static std::string dynamic_volume_name_to_code_(const std::string &name);
   static bool tone_code_to_value_(const std::string &code, float &value);
 
   static std::string level_value_to_code_(float value, int minimum, int maximum);
@@ -191,6 +236,9 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
 
   OnkyoPowerSwitch *power_switch_{nullptr};
   OnkyoMuteSwitch *mute_switch_{nullptr};
+  OnkyoAudysseySwitch *audyssey_switch_{nullptr};
+  OnkyoDynamicEqSwitch *dynamic_eq_switch_{nullptr};
+  OnkyoDynamicVolumeSelect *dynamic_volume_select_{nullptr};
   OnkyoVolumeNumber *volume_number_{nullptr};
   OnkyoFrontBassNumber *front_bass_number_{nullptr};
   OnkyoFrontTrebleNumber *front_treble_number_{nullptr};

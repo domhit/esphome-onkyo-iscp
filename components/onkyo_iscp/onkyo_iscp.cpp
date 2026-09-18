@@ -118,6 +118,69 @@ void OnkyoIscp::query_all() {
   this->enqueue_command_("TFRQSTN");
   this->enqueue_command_("SWLQSTN");
   this->enqueue_command_("CTLQSTN");
+  this->enqueue_command_("ADYQSTN");
+  this->enqueue_command_("ADQQSTN");
+  this->enqueue_command_("ADVQSTN");
+}
+
+void OnkyoIscp::set_audyssey(bool state) {
+  this->send_command(
+      state ? "ADY01" : "ADY00"
+  );
+
+  this->enqueue_command_("ADYQSTN");
+}
+
+void OnkyoIscp::set_audyssey(bool state) {
+  this->send_command(
+      state ? "ADY01" : "ADY00"
+  );
+
+  this->enqueue_command_("ADYQSTN");
+}
+
+std::string OnkyoIscp::dynamic_volume_code_to_name_(
+    const std::string &code
+) {
+  if (code == "00") {
+    return "Off";
+  }
+
+  if (code == "01") {
+    return "Light";
+  }
+
+  if (code == "02") {
+    return "Medium";
+  }
+
+  if (code == "03") {
+    return "Heavy";
+  }
+
+  return {};
+}
+
+std::string OnkyoIscp::dynamic_volume_name_to_code_(
+    const std::string &name
+) {
+  if (name == "Off") {
+    return "00";
+  }
+
+  if (name == "Light") {
+    return "01";
+  }
+
+  if (name == "Medium") {
+    return "02";
+  }
+
+  if (name == "Heavy") {
+    return "03";
+  }
+
+  return {};
 }
 
 std::string OnkyoIscp::tone_value_to_code_(float value) {
@@ -546,6 +609,54 @@ void OnkyoIscp::process_command_(const std::string &command, const std::string &
 
   } else if (command == "CTL") {
     this->process_center_level_(value);
+    } else if (
+      command == "ADY" &&
+      audyssey_switch_ != nullptr
+  ) {
+    if (value == "00") {
+      audyssey_switch_->publish_state(false);
+    } else if (value == "01") {
+      audyssey_switch_->publish_state(true);
+    } else {
+      ESP_LOGW(
+          TAG,
+          "Unknown Audyssey state: %s",
+          value.c_str()
+      );
+    }
+
+  } else if (
+      command == "ADQ" &&
+      dynamic_eq_switch_ != nullptr
+  ) {
+    if (value == "00") {
+      dynamic_eq_switch_->publish_state(false);
+    } else if (value == "01") {
+      dynamic_eq_switch_->publish_state(true);
+    } else {
+      ESP_LOGW(
+          TAG,
+          "Unknown Dynamic EQ state: %s",
+          value.c_str()
+      );
+    }
+
+  } else if (
+      command == "ADV" &&
+      dynamic_volume_select_ != nullptr
+  ) {
+    const std::string name =
+        dynamic_volume_code_to_name_(value);
+
+    if (!name.empty()) {
+      dynamic_volume_select_->publish_state(name);
+    } else {
+      ESP_LOGW(
+          TAG,
+          "Unknown Dynamic Volume state: %s",
+          value.c_str()
+      );
+    }
 
   } else if (command == "FLD" && display_sensor_ != nullptr) {
     display_sensor_->publish_state(value);
@@ -703,5 +814,8 @@ void OnkyoVolumeUpButton::press_action() { if (parent_) parent_->send_command("M
 void OnkyoVolumeDownButton::press_action() { if (parent_) parent_->send_command("MVLDOWN"); }
 void OnkyoQueryAllButton::press_action() { if (parent_) parent_->query_all(); }
 void OnkyoListeningModeSelect::control(const std::string &value) { if (parent_) parent_->set_listening_mode(value); }
+void OnkyoAudysseySwitch::write_state(bool state) { if (parent_ != nullptr) { parent_->set_audyssey(state); } }
+void OnkyoDynamicEqSwitch::write_state(bool state) { if (parent_ != nullptr) { parent_->set_dynamic_eq(state); } }
+void OnkyoDynamicVolumeSelect::control(const std::string &value) { if (parent_ != nullptr) { parent_->set_dynamic_volume(value); } }
 
 }  // namespace esphome::onkyo_iscp

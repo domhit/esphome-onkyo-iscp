@@ -3,14 +3,11 @@ import esphome.config_validation as cv
 from esphome.components import select
 
 from . import OnkyoIscp, onkyo_iscp_ns
-from .const import CONF_INPUT, CONF_LISTENING_MODE, CONF_ONKYO_ISCP_ID
+from .const import CONF_DYNAMIC_VOLUME, CONF_INPUT, CONF_LISTENING_MODE, CONF_ONKYO_ISCP_ID
 
 OnkyoInputSelect = onkyo_iscp_ns.class_("OnkyoInputSelect", select.Select)
-
-OnkyoListeningModeSelect = onkyo_iscp_ns.class_(
-    "OnkyoListeningModeSelect",
-    select.Select,
-)
+OnkyoListeningModeSelect = onkyo_iscp_ns.class_("OnkyoListeningModeSelect", select.Select,)
+OnkyoDynamicVolumeSelect = onkyo_iscp_ns.class_("OnkyoDynamicVolumeSelect", select.Select,)
 
 INPUT_OPTIONS = [
     "VCR/DVR", "CBL/SAT", "GAME/TV", "AUX", "PC",
@@ -65,6 +62,13 @@ LISTENING_MODE_OPTIONS = [
     "Neo:6 Music + Audyssey DSX",
 ]
 
+DYNAMIC_VOLUME_OPTIONS = [
+    "Off",
+    "Light",
+    "Medium",
+    "Heavy",
+]
+
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(CONF_ONKYO_ISCP_ID): cv.use_id(OnkyoIscp),
@@ -75,6 +79,10 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_LISTENING_MODE): select.select_schema(
             OnkyoListeningModeSelect,
             icon="mdi:surround-sound",
+        ),
+        cv.Optional(CONF_DYNAMIC_VOLUME): select.select_schema(
+            OnkyoDynamicVolumeSelect,
+            icon="mdi:volume-equal",
         ),
     }
 )
@@ -89,3 +97,13 @@ async def to_code(config):
         var = await select.new_select(listening_mode_config, options=LISTENING_MODE_OPTIONS)
         cg.add(var.set_parent(parent))
         cg.add(parent.set_listening_mode_select(var))
+    if dynamic_volume_config := config.get(
+        CONF_DYNAMIC_VOLUME
+    ):
+        var = await select.new_select(
+            dynamic_volume_config,
+            options=DYNAMIC_VOLUME_OPTIONS,
+        )
+
+        cg.add(var.set_parent(parent))
+        cg.add(parent.set_dynamic_volume_select(var))
