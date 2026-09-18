@@ -264,6 +264,51 @@ class OnkyoPresetDownButton : public button::Button {
   OnkyoIscp *parent_{nullptr};
 };
 
+class OnkyoPresetStoreButton : public button::Button {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+
+ protected:
+  void press_action() override;
+  OnkyoIscp *parent_{nullptr};
+};
+
+class OnkyoRdsRadioTextButton : public button::Button {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+
+ protected:
+  void press_action() override;
+  OnkyoIscp *parent_{nullptr};
+};
+
+class OnkyoRdsPtyButton : public button::Button {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+
+ protected:
+  void press_action() override;
+  OnkyoIscp *parent_{nullptr};
+};
+
+class OnkyoRdsTpButton : public button::Button {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+
+ protected:
+  void press_action() override;
+  OnkyoIscp *parent_{nullptr};
+};
+
+class OnkyoRdsNextButton : public button::Button {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+
+ protected:
+  void press_action() override;
+  OnkyoIscp *parent_{nullptr};
+};
+
 //Main ####################################################################################
 class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
  public:
@@ -297,6 +342,11 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   void set_fm_frequency(float frequency);
   void set_am_frequency(float frequency);
   void set_tuner_preset(float preset);
+  void store_current_preset();
+  void show_rds_radio_text();
+  void show_rds_pty();
+  void show_rds_tp();
+  void show_next_rds_information();
 
   void set_connected_binary_sensor(binary_sensor::BinarySensor* entity) { connected_binary_sensor_ = entity; }
   void set_power_switch(OnkyoPowerSwitch* entity) { power_switch_ = entity; }
@@ -371,6 +421,8 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   bool receiver_online_{false};
   static constexpr uint32_t RECEIVER_TIMEOUT_MS = 75000;
   static bool is_valid_ascii_frame_(const std::string& frame);
+  uint8_t current_tuner_preset_{0};
+
 
   OnkyoPowerSwitch* power_switch_{nullptr};
   OnkyoMuteSwitch* mute_switch_{nullptr};

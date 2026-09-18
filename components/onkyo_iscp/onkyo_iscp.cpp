@@ -254,6 +254,8 @@ void OnkyoIscp::set_tuner_preset(float preset) {
   int value = static_cast<int>(std::lround(preset));
   value = std::max(1, std::min(40, value));
 
+  current_tuner_preset_ = static_cast<uint8_t>(value);
+
   char command[8];
   std::snprintf(command, sizeof(command), "PRS%02X", value);
 
@@ -337,6 +339,8 @@ void OnkyoIscp::process_tuner_preset_(const std::string &value) {
     ESP_LOGW(TAG, "Invalid tuner preset: %s", value.c_str());
     return;
   }
+
+  current_tuner_preset_ = static_cast<uint8_t>(preset);
 
   if (tuner_preset_number_ != nullptr) {
     tuner_preset_number_->publish_state(static_cast<float>(preset));
@@ -815,6 +819,72 @@ void OnkyoIscp::set_listening_mode(const std::string& mode) {
     return;
   }
   this->send_command("LMD" + code);
+}
+
+void OnkyoIscp::store_current_preset() {
+  if (tuner_band_ == TunerBand::UNKNOWN) {
+    ESP_LOGW(TAG, "Cannot store preset while no tuner input is active");
+    return;
+  }
+
+  if (current_tuner_preset_ < 1 || current_tuner_preset_ > 40) {
+    ESP_LOGW(TAG, "Cannot store preset because no valid preset is selected");
+    return;
+  }
+
+  char command[8];
+  std::snprintf(
+      command,
+      sizeof(command),
+      "PRM%02X",
+      current_tuner_preset_
+  );
+
+  ESP_LOGI(
+      TAG,
+      "Storing current tuner frequency in preset %u",
+      current_tuner_preset_
+  );
+
+  this->send_command(command);
+  this->enqueue_command_("PRSQSTN");
+  this->enqueue_command_("TUNQSTN");
+}
+
+void OnkyoIscp::show_rds_radio_text() {
+  if (tuner_band_ != TunerBand::FM) {
+    ESP_LOGW(TAG, "RDS Radio Text is only available on FM");
+    return;
+  }
+
+  this->send_command("RDS00");
+}
+
+void OnkyoIscp::show_rds_pty() {
+  if (tuner_band_ != TunerBand::FM) {
+    ESP_LOGW(TAG, "RDS PTY information is only available on FM");
+    return;
+  }
+
+  this->send_command("RDS01");
+}
+
+void OnkyoIscp::show_rds_tp() {
+  if (tuner_band_ != TunerBand::FM) {
+    ESP_LOGW(TAG, "RDS TP information is only available on FM");
+    return;
+  }
+
+  this->send_command("RDS02");
+}
+
+void OnkyoIscp::show_next_rds_information() {
+  if (tuner_band_ != TunerBand::FM) {
+    ESP_LOGW(TAG, "RDS information is only available on FM");
+    return;
+  }
+
+  this->send_command("RDSUP");
 }
 
 void OnkyoIscp::read_uart_() {
@@ -1302,6 +1372,36 @@ void OnkyoPresetUpButton::press_action() {
 void OnkyoPresetDownButton::press_action() {
   if (parent_ != nullptr) {
     parent_->send_command("PRSDOWN");
+  }
+}
+
+void OnkyoPresetStoreButton::press_action() {
+  if (parent_ != nullptr) {
+    parent_->store_current_preset();
+  }
+}
+
+void OnkyoRdsRadioTextButton::press_action() {
+  if (parent_ != nullptr) {
+    parent_->show_rds_radio_text();
+  }
+}
+
+void OnkyoRdsPtyButton::press_action() {
+  if (parent_ != nullptr) {
+    parent_->show_rds_pty();
+  }
+}
+
+void OnkyoRdsTpButton::press_action() {
+  if (parent_ != nullptr) {
+    parent_->show_rds_tp();
+  }
+}
+
+void OnkyoRdsNextButton::press_action() {
+  if (parent_ != nullptr) {
+    parent_->show_next_rds_information();
   }
 }
 }  // namespace esphome::onkyo_iscp
