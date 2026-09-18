@@ -121,6 +121,9 @@ void OnkyoIscp::query_all() {
   this->enqueue_command_("ADYQSTN");
   this->enqueue_command_("ADQQSTN");
   this->enqueue_command_("ADVQSTN");
+  this->enqueue_command_("LTNQSTN");
+  this->enqueue_command_("RASQSTN");
+  this->enqueue_command_("MOTQSTN");
 }
 
 void OnkyoIscp::set_audyssey(bool state) {
@@ -137,6 +140,41 @@ void OnkyoIscp::set_dynamic_eq(bool state) {
   );
 
   this->enqueue_command_("ADQQSTN");
+}
+
+void OnkyoIscp::set_re_eq(bool state) {
+  this->send_command(
+      state ? "RAS01" : "RAS00"
+  );
+
+  this->enqueue_command_("RASQSTN");
+}
+
+void OnkyoIscp::set_late_night(
+    const std::string &mode
+) {
+  const std::string code =
+      late_night_name_to_code_(mode);
+
+  if (code.empty()) {
+    ESP_LOGW(
+        TAG,
+        "Unknown Late Night option: %s",
+        mode.c_str()
+    );
+    return;
+  }
+
+  this->send_command("LTN" + code);
+  this->enqueue_command_("LTNQSTN");
+}
+
+void OnkyoIscp::set_music_optimizer(bool state) {
+  this->send_command(
+      state ? "MOT01" : "MOT00"
+  );
+
+  this->enqueue_command_("MOTQSTN");
 }
 
 void OnkyoIscp::set_dynamic_volume(
@@ -256,6 +294,50 @@ bool OnkyoIscp::tone_code_to_value_(const std::string &code, float &value) {
       sign == '-' ? -magnitude : magnitude
   );
   return true;
+}
+
+std::string OnkyoIscp::late_night_code_to_name_(
+    const std::string &code
+) {
+  if (code == "00") {
+    return "Off";
+  }
+
+  if (code == "01") {
+    return "Low";
+  }
+
+  if (code == "02") {
+    return "High";
+  }
+
+  if (code == "03") {
+    return "Auto";
+  }
+
+  return {};
+}
+
+std::string OnkyoIscp::late_night_code_to_name_(
+    const std::string &code
+) {
+  if (code == "00") {
+    return "Off";
+  }
+
+  if (code == "01") {
+    return "Low";
+  }
+
+  if (code == "02") {
+    return "High";
+  }
+
+  if (code == "03") {
+    return "Auto";
+  }
+
+  return {};
 }
 
 std::string OnkyoIscp::level_value_to_code_(
@@ -676,7 +758,54 @@ void OnkyoIscp::process_command_(const std::string &command, const std::string &
           value.c_str()
       );
     }
+    } else if (
+      command == "RAS" &&
+      re_eq_switch_ != nullptr
+  ) {
+    if (value == "00") {
+      re_eq_switch_->publish_state(false);
+    } else if (value == "01") {
+      re_eq_switch_->publish_state(true);
+    } else {
+      ESP_LOGW(
+          TAG,
+          "Unknown Re-EQ state: %s",
+          value.c_str()
+      );
+    }
 
+  } else if (
+      command == "MOT" &&
+      music_optimizer_switch_ != nullptr
+  ) {
+    if (value == "00") {
+      music_optimizer_switch_->publish_state(false);
+    } else if (value == "01") {
+      music_optimizer_switch_->publish_state(true);
+    } else {
+      ESP_LOGW(
+          TAG,
+          "Unknown Music Optimizer state: %s",
+          value.c_str()
+      );
+    }
+
+  } else if (
+      command == "LTN" &&
+      late_night_select_ != nullptr
+  ) {
+    const std::string name =
+        late_night_code_to_name_(value);
+
+    if (!name.empty()) {
+      late_night_select_->publish_state(name);
+    } else {
+      ESP_LOGW(
+          TAG,
+          "Unknown Late Night state: %s",
+          value.c_str()
+      );
+    }
   } else if (command == "FLD" && display_sensor_ != nullptr) {
     display_sensor_->publish_state(value);
   } else {
@@ -836,5 +965,7 @@ void OnkyoListeningModeSelect::control(const std::string &value) { if (parent_) 
 void OnkyoAudysseySwitch::write_state(bool state) { if (parent_ != nullptr) { parent_->set_audyssey(state); } }
 void OnkyoDynamicEqSwitch::write_state(bool state) { if (parent_ != nullptr) { parent_->set_dynamic_eq(state); } }
 void OnkyoDynamicVolumeSelect::control(const std::string &value) { if (parent_ != nullptr) { parent_->set_dynamic_volume(value); } }
-
+void OnkyoReEqSwitch::write_state(bool state) { if (parent_ != nullptr) { parent_->set_re_eq(state); } }
+void OnkyoMusicOptimizerSwitch::write_state(bool state) { if (parent_ != nullptr) { parent_->set_music_optimizer(state); } }
+void OnkyoLateNightSelect::control(const std::string &value) { if (parent_ != nullptr) { parent_->set_late_night(value); } }
 }  // namespace esphome::onkyo_iscp

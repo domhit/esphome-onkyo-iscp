@@ -36,26 +36,35 @@ class OnkyoMuteSwitch : public switch_::Switch {
 
 class OnkyoAudysseySwitch : public switch_::Switch {
  public:
-  void set_parent(OnkyoIscp *parent) {
-    parent_ = parent;
-  }
-
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
  protected:
   void write_state(bool state) override;
-
   OnkyoIscp *parent_{nullptr};
 };
 
 
 class OnkyoDynamicEqSwitch : public switch_::Switch {
  public:
-  void set_parent(OnkyoIscp *parent) {
-    parent_ = parent;
-  }
-
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
  protected:
   void write_state(bool state) override;
+  OnkyoIscp *parent_{nullptr};
+};
 
+class OnkyoReEqSwitch : public switch_::Switch {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+ protected:
+  void write_state(bool state) override;
+  OnkyoIscp *parent_{nullptr};
+};
+
+
+class OnkyoMusicOptimizerSwitch : public switch_::Switch {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+ protected:
+  void write_state(bool state) override;
   OnkyoIscp *parent_{nullptr};
 };
 
@@ -86,26 +95,18 @@ class OnkyoFrontTrebleNumber : public number::Number {
 
 class OnkyoSubwooferLevelNumber : public number::Number {
  public:
-  void set_parent(OnkyoIscp *parent) {
-    parent_ = parent;
-  }
-
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
  protected:
   void control(float value) override;
-
   OnkyoIscp *parent_{nullptr};
 };
 
 
 class OnkyoCenterLevelNumber : public number::Number {
  public:
-  void set_parent(OnkyoIscp *parent) {
-    parent_ = parent;
-  }
-
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
  protected:
   void control(float value) override;
-
   OnkyoIscp *parent_{nullptr};
 };
 
@@ -127,13 +128,17 @@ class OnkyoListeningModeSelect : public select::Select {
 
 class OnkyoDynamicVolumeSelect : public select::Select {
  public:
-  void set_parent(OnkyoIscp *parent) {
-    parent_ = parent;
-  }
-
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
  protected:
   void control(const std::string &value) override;
+  OnkyoIscp *parent_{nullptr};
+};
 
+class OnkyoLateNightSelect : public select::Select {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+ protected:
+  void control(const std::string &value) override;
   OnkyoIscp *parent_{nullptr};
 };
 
@@ -179,6 +184,9 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   void set_center_level(float value);
   void set_audyssey(bool state);
   void set_dynamic_eq(bool state);
+  void set_re_eq(bool state);
+  void set_music_optimizer(bool state);
+  void set_late_night(const std::string &mode);
   void set_dynamic_volume(const std::string &mode);
   void set_input(const std::string &input);
   void set_listening_mode(const std::string &listening_mode);
@@ -187,6 +195,9 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   void set_mute_switch(OnkyoMuteSwitch *entity) { mute_switch_ = entity; }
   void set_audyssey_switch(OnkyoAudysseySwitch *entity) { audyssey_switch_ = entity; }
   void set_dynamic_eq_switch(OnkyoDynamicEqSwitch *entity) { dynamic_eq_switch_ = entity; }
+  void set_re_eq_switch(OnkyoReEqSwitch *entity) { re_eq_switch_ = entity; }
+  void set_music_optimizer_switch(OnkyoMusicOptimizerSwitch *entity) { music_optimizer_switch_ = entity; }
+  void set_late_night_select(OnkyoLateNightSelect *entity) { late_night_select_ = entity; }
   void set_dynamic_volume_select(OnkyoDynamicVolumeSelect *entity) { dynamic_volume_select_ = entity; }
   void set_volume_number(OnkyoVolumeNumber *entity) { volume_number_ = entity; }
   void set_front_bass_number(OnkyoFrontBassNumber *entity) { front_bass_number_ = entity; }
@@ -219,8 +230,9 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   static std::string tone_value_to_code_(float value);
   static std::string dynamic_volume_code_to_name_(const std::string &code);
   static std::string dynamic_volume_name_to_code_(const std::string &name);
+  static std::string late_night_code_to_name_(const std::string &code);
+  static std::string late_night_name_to_code_(const std::string &name);
   static bool tone_code_to_value_(const std::string &code, float &value);
-
   static std::string level_value_to_code_(float value, int minimum, int maximum);
   static bool level_code_to_value_(const std::string &code, float &value);
 
@@ -238,6 +250,8 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   OnkyoMuteSwitch *mute_switch_{nullptr};
   OnkyoAudysseySwitch *audyssey_switch_{nullptr};
   OnkyoDynamicEqSwitch *dynamic_eq_switch_{nullptr};
+  OnkyoReEqSwitch *re_eq_switch_{nullptr};
+  OnkyoMusicOptimizerSwitch *music_optimizer_switch_{nullptr};
   OnkyoDynamicVolumeSelect *dynamic_volume_select_{nullptr};
   OnkyoVolumeNumber *volume_number_{nullptr};
   OnkyoFrontBassNumber *front_bass_number_{nullptr};
@@ -246,6 +260,7 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   OnkyoCenterLevelNumber *center_level_number_{nullptr};
   OnkyoInputSelect *input_select_{nullptr};
   OnkyoListeningModeSelect *listening_mode_select_{nullptr};
+  OnkyoLateNightSelect *late_night_select_{nullptr};
   text_sensor::TextSensor *last_frame_sensor_{nullptr};
   text_sensor::TextSensor *last_unknown_frame_sensor_{nullptr};
   text_sensor::TextSensor *display_sensor_{nullptr};

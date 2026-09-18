@@ -3,11 +3,12 @@ import esphome.config_validation as cv
 from esphome.components import select
 
 from . import OnkyoIscp, onkyo_iscp_ns
-from .const import CONF_DYNAMIC_VOLUME, CONF_INPUT, CONF_LISTENING_MODE, CONF_ONKYO_ISCP_ID
+from .const import CONF_DYNAMIC_VOLUME, CONF_INPUT, CONF_LATE_NIGHT, CONF_LISTENING_MODE, CONF_ONKYO_ISCP_ID
 
 OnkyoInputSelect = onkyo_iscp_ns.class_("OnkyoInputSelect", select.Select)
 OnkyoListeningModeSelect = onkyo_iscp_ns.class_("OnkyoListeningModeSelect", select.Select,)
 OnkyoDynamicVolumeSelect = onkyo_iscp_ns.class_("OnkyoDynamicVolumeSelect", select.Select,)
+OnkyoLateNightSelect = onkyo_iscp_ns.class_("OnkyoLateNightSelect", select.Select,)
 
 INPUT_OPTIONS = [
     "VCR/DVR", "CBL/SAT", "GAME/TV", "AUX", "PC",
@@ -69,6 +70,13 @@ DYNAMIC_VOLUME_OPTIONS = [
     "Heavy",
 ]
 
+LATE_NIGHT_OPTIONS = [
+    "Off",
+    "Low",
+    "High",
+    "Auto",
+]
+
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(CONF_ONKYO_ISCP_ID): cv.use_id(OnkyoIscp),
@@ -84,6 +92,10 @@ CONFIG_SCHEMA = cv.Schema(
             OnkyoDynamicVolumeSelect,
             icon="mdi:volume-equal",
         ),
+        cv.Optional(CONF_LATE_NIGHT): select.select_schema(
+            OnkyoLateNightSelect,
+            icon="mdi:weather-night",
+        ),
     }
 )
 
@@ -97,13 +109,11 @@ async def to_code(config):
         var = await select.new_select(listening_mode_config, options=LISTENING_MODE_OPTIONS)
         cg.add(var.set_parent(parent))
         cg.add(parent.set_listening_mode_select(var))
-    if dynamic_volume_config := config.get(
-        CONF_DYNAMIC_VOLUME
-    ):
-        var = await select.new_select(
-            dynamic_volume_config,
-            options=DYNAMIC_VOLUME_OPTIONS,
-        )
-
+    if dynamic_volume_config := config.get(CONF_DYNAMIC_VOLUME):
+        var = await select.new_select(dynamic_volume_config, options=DYNAMIC_VOLUME_OPTIONS)
         cg.add(var.set_parent(parent))
         cg.add(parent.set_dynamic_volume_select(var))
+    if late_night_config := config.get(CONF_LATE_NIGHT):
+        var = await select.new_select(late_night_config, options=LATE_NIGHT_OPTIONS,)
+        cg.add(var.set_parent(parent))
+        cg.add(parent.set_late_night_select(var))
