@@ -1029,11 +1029,11 @@ void OnkyoIscp::process_command_(const std::string& command,
     } else {
       ESP_LOGW(TAG, "Unknown speaker layout state: %s", value.c_str());
     }
-  } else if (command == "TUN") {
-    this->process_tuner_frequency_(value);
+  } else if (command == "TUN" || command == "TUZ") {
+  this->process_tuner_frequency_(value);
 
-  } else if (command == "PRS") {
-    this->process_tuner_preset_(value);
+  } else if (command == "PRS" || command == "PRZ") {
+  this->process_tuner_preset_(value);
   } else if (command == "FLD" && display_sensor_ != nullptr) {
     display_sensor_->publish_state(value);
   } else {
