@@ -1099,14 +1099,29 @@ void OnkyoIscp::process_command_(const std::string& command,
     } else {
       ESP_LOGW(TAG, "Unknown speaker layout state: %s", value.c_str());
     }
-  } else if (command == "TUN" || command == "TUZ") {
+} else if (command == "TUN" || command == "TUZ") {
   this->process_tuner_frequency_(value);
 
-  } else if (command == "PRS" || command == "PRZ") {
+} else if (command == "PRS" || command == "PRZ") {
   this->process_tuner_preset_(value);
-  } else if (command == "FLD" && display_sensor_ != nullptr) {
-    display_sensor_->publish_state(value);
+
+} else if (command == "RDS") {
+  if (value == "00") {
+    ESP_LOGD(TAG, "RDS display mode: Radio Text");
+  } else if (value == "01") {
+    ESP_LOGD(TAG, "RDS display mode: PTY");
+  } else if (value == "02") {
+    ESP_LOGD(TAG, "RDS display mode: TP");
+  } else if (value == "UP") {
+    ESP_LOGD(TAG, "RDS display mode advanced");
   } else {
+    ESP_LOGW(TAG, "Unknown RDS response: %s", value.c_str());
+  }
+
+} else if (command == "FLD" && display_sensor_ != nullptr) {
+  display_sensor_->publish_state(value);
+
+} else {
     const std::string unknown_frame = command + value;
     ESP_LOGD(TAG, "Unhandled ISCP frame: %s", unknown_frame.c_str());
     if (last_unknown_frame_sensor_ != nullptr) {
