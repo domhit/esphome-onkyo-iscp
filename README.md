@@ -13,6 +13,32 @@ Grundgerüst einer externen ESPHome-Komponente für die serielle 3,3-V-UART-Schn
 - letzter empfangener ISCP-Frame
 - generische Action `onkyo_iscp.send` für noch nicht implementierte Befehle
 
+## Features
+
+### v0.2.0
+
+- Native ESPHome API
+- Bidirectional Onkyo ISCP communication
+- Receiver availability detection
+- Power and mute
+- Master volume
+- Input selection
+- Listening modes
+- Front bass and treble
+- Temporary subwoofer and center levels
+- Audyssey
+- Dynamic EQ
+- Dynamic Volume
+- Late Night
+- Re-EQ
+- Music Optimizer
+- Sleep timer
+- Display dimmer
+- Audio selector
+- Speaker layout
+- Unknown ISCP frame diagnostics
+- Automatic state synchronization
+
 ## Struktur
 
 ```text
@@ -32,7 +58,3 @@ Die Onkyo-Belegung siehe /docs/pinout.md
 - gemeinsame Masse
 - 
 - keine Versorgung über den 3,3-V-Pin des Writing Ports, oder den +12VD_ST und +10VS der Mainboardversorgung
-
-## Hinweis
-
-Dies ist bewusst ein entwickelbares Grundgerüst. Eingangscodes und die Umrechnung des Lautstärke-Rohwerts in dB müssen am TX-SR608 praktisch validiert werden.
