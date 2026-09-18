@@ -3,7 +3,7 @@ import esphome.config_validation as cv
 from esphome.components import number
 
 from . import OnkyoIscp, onkyo_iscp_ns
-from .const import CONF_CENTER_LEVEL, CONR_SUBWOOFER_LEVEL, CONF_FRONT_BASS, CONF_FRONT_TREBLE, CONF_MASTER_VOLUME, CONF_ONKYO_ISCP_ID
+from .const import CONF_CENTER_LEVEL, CONF_SUBWOOFER_LEVEL, CONF_FRONT_BASS, CONF_FRONT_TREBLE, CONF_MASTER_VOLUME, CONF_ONKYO_ISCP_ID
 
 OnkyoVolumeNumber = onkyo_iscp_ns.class_("OnkyoVolumeNumber", number.Number)
 OnkyoFrontBassNumber = onkyo_iscp_ns.class_("OnkyoFrontBassNumber", number.Number)
