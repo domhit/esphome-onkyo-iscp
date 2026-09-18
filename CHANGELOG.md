@@ -42,16 +42,41 @@
 - Invalid UART startup bytes could be forwarded as invalid UTF-8
 - Combined TFR bass/treble responses are now parsed correctly
 
-# Planned changes
 ## 0.3.0
-TUN
-PRS
-PRM
-RDS
-PTS
-TPS
-PTY
-TP
+
+### Added
+
+- FM frequency control and state reporting
+- AM frequency control and state reporting
+- Tuner band detection
+- Main and Zone 2 tuner status handling
+- Tuner preset selection
+- Preset next and previous controls
+- Preset memory
+- Manual tuning state using preset 0
+- RDS receiver display controls
+- RDS PTY selection and search
+- RDS TP search
+
+### Changed
+
+- Tuner queries now run only when a tuner input is active
+- Preset changes now synchronize both preset and frequency
+- Tuner commands use the internal command queue
+
+### Fixed
+
+- Zone 2 tuner notifications no longer appear as unknown frames
+- Preset 0 is now handled as manual tuning
+- PTY and TP N/A responses are handled as valid states
+
+### Known limitations
+
+- No separate RDS station name or Radio Text data frames were
+  observed on the TX-SR608
+- PTY and TP searches can return N/A depending on station metadata
+  
+# Planned changes
 
 ## 0.4.0
 HAO

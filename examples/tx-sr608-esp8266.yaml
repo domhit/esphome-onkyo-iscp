@@ -37,7 +37,7 @@ external_components:
   - source:
       type: git
       url: https://github.com/domhit/esphome-onkyo-iscp
-      ref: main
+      ref: dev/v0.3.0
     components:
       - onkyo_iscp
     refresh: 0s
@@ -115,6 +115,18 @@ number:
       name: Sleep-Timer
       mode: box
 
+    fm_frequency:
+      name: FM-Frequenz
+      mode: box
+
+    am_frequency:
+      name: AM-Frequenz
+      mode: box
+
+    tuner_preset:
+      name: Tuner-Preset
+      mode: box
+
 select:
   - platform: onkyo_iscp
     onkyo_iscp_id: onkyo_receiver
@@ -140,6 +152,9 @@ select:
     speaker_layout:
       name: Speaker Layout
       disabled_by_default: true
+
+    pty:
+      name: RDS Programmtyp
       
 button:
   - platform: onkyo_iscp
@@ -154,6 +169,34 @@ button:
     query_all:
       name: Status vollständig abfragen
 
+    preset_up:
+      name: Preset vor
+
+    preset_down:
+      name: Preset zurück
+
+    preset_store:
+      name: Aktuellen Sender speichern
+      
+    rds_radio_text:
+      name: RDS Radio Text anzeigen
+
+    rds_pty:
+      name: RDS PTY anzeigen
+
+    rds_tp:
+      name: RDS TP anzeigen
+
+    rds_next:
+      name: RDS-Anzeige weiterschalten
+
+    pty_scan:
+      name: PTY-Suche starten
+
+    tp_scan:
+      name: TP-Suche starten
+
+      
 text_sensor:
   - platform: onkyo_iscp
     onkyo_iscp_id: onkyo_receiver
