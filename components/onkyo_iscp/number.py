@@ -3,13 +3,14 @@ import esphome.config_validation as cv
 from esphome.components import number
 
 from . import OnkyoIscp, onkyo_iscp_ns
-from .const import CONF_CENTER_LEVEL, CONF_SUBWOOFER_LEVEL, CONF_FRONT_BASS, CONF_FRONT_TREBLE, CONF_MASTER_VOLUME, CONF_ONKYO_ISCP_ID
+from .const import CONF_CENTER_LEVEL, CONF_SUBWOOFER_LEVEL, CONF_FRONT_BASS, CONF_FRONT_TREBLE, CONF_MASTER_VOLUME, CONF_SLEEP_TIMER, CONF_ONKYO_ISCP_ID
 
 OnkyoVolumeNumber = onkyo_iscp_ns.class_("OnkyoVolumeNumber", number.Number)
 OnkyoFrontBassNumber = onkyo_iscp_ns.class_("OnkyoFrontBassNumber", number.Number)
 OnkyoFrontTrebleNumber = onkyo_iscp_ns.class_("OnkyoFrontTrebleNumber", number.Number,)
 OnkyoSubwooferLevelNumber = onkyo_iscp_ns.class_("OnkyoSubwooferLevelNumber", number.Number,)
 OnkyoCenterLevelNumber = onkyo_iscp_ns.class_("OnkyoCenterLevelNumber", number.Number,)
+OnkyoSleepTimerNumber = onkyo_iscp_ns.class_("OnkyoSleepTimerNumber", number.Number,)
 
 CONFIG_SCHEMA = cv.Schema(
     {
@@ -40,6 +41,12 @@ CONFIG_SCHEMA = cv.Schema(
             icon="mdi:speaker",
             unit_of_measurement="dB",
         ),
+        cv.Optional(CONF_SLEEP_TIMER): number.number_schema(
+            OnkyoSleepTimerNumber,
+            icon="mdi:sleep",
+            unit_of_measurement="min",
+        ),
+
     }
 )
 
@@ -92,3 +99,13 @@ async def to_code(config):
         )
         cg.add(var.set_parent(parent))
         cg.add(parent.set_center_level_number(var))
+
+    if sleep_timer_config := config.get(CONF_SLEEP_TIMER):
+        var = await number.new_number(
+            sleep_timer_config,
+            min_value=0,
+            max_value=90,
+            step=1,
+        )
+        cg.add(var.set_parent(parent))
+        cg.add(parent.set_sleep_timer_number(var))

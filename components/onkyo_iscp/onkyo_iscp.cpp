@@ -124,6 +124,8 @@ void OnkyoIscp::query_all() {
   this->enqueue_command_("LTNQSTN");
   this->enqueue_command_("RASQSTN");
   this->enqueue_command_("MOTQSTN");
+  this->enqueue_command_("DIMQSTN");
+  this->enqueue_command_("SLPQSTN");
 }
 
 void OnkyoIscp::set_audyssey(bool state) {
@@ -194,6 +196,102 @@ void OnkyoIscp::set_dynamic_volume(
 
   this->send_command("ADV" + code);
   this->enqueue_command_("ADVQSTN");
+}
+
+void OnkyoIscp::set_dimmer(
+    const std::string &mode
+) {
+  const std::string code =
+      dimmer_name_to_code_(mode);
+
+  if (code.empty()) {
+    ESP_LOGW(
+        TAG,
+        "Unknown dimmer option: %s",
+        mode.c_str()
+    );
+    return;
+  }
+
+  this->send_command("DIM" + code);
+  this->enqueue_command_("DIMQSTN");
+}
+
+void OnkyoIscp::set_sleep_timer(float minutes) {
+  int rounded = static_cast<int>(
+      std::lround(minutes)
+  );
+
+  rounded = std::max(0, std::min(90, rounded));
+
+  if (rounded == 0) {
+    this->send_command("SLPOFF");
+    this->enqueue_command_("SLPQSTN");
+    return;
+  }
+
+  char code[3];
+
+  std::snprintf(
+      code,
+      sizeof(code),
+      "%02X",
+      rounded
+  );
+
+  this->send_command(
+      "SLP" + std::string(code)
+  );
+
+  this->enqueue_command_("SLPQSTN");
+}
+
+void OnkyoIscp::process_sleep_timer_(
+    const std::string &value
+) {
+  if (sleep_timer_number_ == nullptr) {
+    return;
+  }
+
+  if (value == "OFF") {
+    sleep_timer_number_->publish_state(0.0f);
+    return;
+  }
+
+  if (value.size() != 2) {
+    ESP_LOGW(
+        TAG,
+        "Invalid sleep timer response: %s",
+        value.c_str()
+    );
+    return;
+  }
+
+  char *end = nullptr;
+
+  const long minutes = std::strtol(
+      value.c_str(),
+      &end,
+      16
+  );
+
+  if (
+      end == value.c_str() ||
+      end != '\0' ||
+      minutes < 0 ||
+      minutes > 90
+  ) {
+    ESP_LOGW(
+        TAG,
+        "Invalid sleep timer value: %s",
+        value.c_str()
+    );
+    return;
+  }
+
+  sleep_timer_number_->publish_state(
+      static_cast<float>(minutes)
+  );
 }
 
 std::string OnkyoIscp::dynamic_volume_code_to_name_(
@@ -417,6 +515,42 @@ bool OnkyoIscp::level_code_to_value_(
   );
 
   return true;
+}
+
+std::string OnkyoIscp::dimmer_code_to_name_(
+    const std::string &code
+) {
+  if (code == "00") {
+    return "Bright";
+  }
+
+  if (code == "01") {
+    return "Dim";
+  }
+
+  if (code == "02") {
+    return "Dark";
+  }
+
+  return {};
+}
+
+std::string OnkyoIscp::dimmer_name_to_code_(
+    const std::string &name
+) {
+  if (name == "Bright") {
+    return "00";
+  }
+
+  if (name == "Dim") {
+    return "01";
+  }
+
+  if (name == "Dark") {
+    return "02";
+  }
+
+  return {};
 }
 
 void OnkyoIscp::set_power(bool state) { this->send_command(state ? "PWR01" : "PWR00"); }
@@ -806,6 +940,28 @@ void OnkyoIscp::process_command_(const std::string &command, const std::string &
           value.c_str()
       );
     }
+  
+    } else if (
+      command == "DIM" &&
+      dimmer_select_ != nullptr
+  ) {
+    const std::string name =
+        dimmer_code_to_name_(value);
+
+    if (!name.empty()) {
+      dimmer_select_->publish_state(name);
+    } else {
+      ESP_LOGW(
+          TAG,
+          "Unknown dimmer state: %s",
+          value.c_str()
+      );
+    }
+
+  } else if (command == "SLP") {
+    this->process_sleep_timer_(value);
+
+
   } else if (command == "FLD" && display_sensor_ != nullptr) {
     display_sensor_->publish_state(value);
   } else {
@@ -968,4 +1124,6 @@ void OnkyoDynamicVolumeSelect::control(const std::string &value) { if (parent_ !
 void OnkyoReEqSwitch::write_state(bool state) { if (parent_ != nullptr) { parent_->set_re_eq(state); } }
 void OnkyoMusicOptimizerSwitch::write_state(bool state) { if (parent_ != nullptr) { parent_->set_music_optimizer(state); } }
 void OnkyoLateNightSelect::control(const std::string &value) { if (parent_ != nullptr) { parent_->set_late_night(value); } }
+void OnkyoDimmerSelect::control(const std::string &value) { if (parent_ != nullptr) { parent_->set_dimmer(value); } }
+void OnkyoSleepTimerNumber::control(float value) { if (parent_ != nullptr) { parent_->set_sleep_timer(value); } }
 }  // namespace esphome::onkyo_iscp

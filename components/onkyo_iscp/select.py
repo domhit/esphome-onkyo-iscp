@@ -3,12 +3,13 @@ import esphome.config_validation as cv
 from esphome.components import select
 
 from . import OnkyoIscp, onkyo_iscp_ns
-from .const import CONF_DYNAMIC_VOLUME, CONF_INPUT, CONF_LATE_NIGHT, CONF_LISTENING_MODE, CONF_ONKYO_ISCP_ID
+from .const import CONF_DIMMER, CONF_DYNAMIC_VOLUME, CONF_INPUT, CONF_LATE_NIGHT, CONF_LISTENING_MODE, CONF_ONKYO_ISCP_ID
 
 OnkyoInputSelect = onkyo_iscp_ns.class_("OnkyoInputSelect", select.Select)
 OnkyoListeningModeSelect = onkyo_iscp_ns.class_("OnkyoListeningModeSelect", select.Select,)
 OnkyoDynamicVolumeSelect = onkyo_iscp_ns.class_("OnkyoDynamicVolumeSelect", select.Select,)
 OnkyoLateNightSelect = onkyo_iscp_ns.class_("OnkyoLateNightSelect", select.Select,)
+OnkyoDimmerSelect = onkyo_iscp_ns.class_("OnkyoDimmerSelect", select.Select,)
 
 INPUT_OPTIONS = [
     "VCR/DVR", "CBL/SAT", "GAME/TV", "AUX", "PC",
@@ -76,6 +77,11 @@ LATE_NIGHT_OPTIONS = [
     "High",
     "Auto",
 ]
+DIMMER_OPTIONS = [
+    "Bright",
+    "Dim",
+    "Dark",
+]
 
 CONFIG_SCHEMA = cv.Schema(
     {
@@ -95,6 +101,10 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_LATE_NIGHT): select.select_schema(
             OnkyoLateNightSelect,
             icon="mdi:weather-night",
+        ),
+        cv.Optional(CONF_DIMMER): select.select_schema(
+            OnkyoDimmerSelect,
+            icon="mdi:brightness-6",
         ),
     }
 )
@@ -117,3 +127,7 @@ async def to_code(config):
         var = await select.new_select(late_night_config, options=LATE_NIGHT_OPTIONS,)
         cg.add(var.set_parent(parent))
         cg.add(parent.set_late_night_select(var))
+    if dimmer_config := config.get(CONF_DIMMER):
+        var = await select.new_select(dimmer_config,  options=DIMMER_OPTIONS,)
+        cg.add(var.set_parent(parent))
+        cg.add(parent.set_dimmer_select(var))
