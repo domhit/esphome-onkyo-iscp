@@ -125,10 +125,12 @@ void OnkyoIscp::query_all() {
   this->enqueue_command_("SLPQSTN");
   this->enqueue_command_("SLAQSTN");
   this->enqueue_command_("SPLQSTN");
+}
+
+void OnkyoIscp::query_tuner() {
   this->enqueue_command_("TUNQSTN");
   this->enqueue_command_("PRSQSTN");
 }
-
 
 void OnkyoIscp::set_audyssey(bool state) {
   this->send_command(state ? "ADY01" : "ADY00");
@@ -261,6 +263,29 @@ void OnkyoIscp::set_tuner_preset(float preset) {
 
   this->send_command(command);
   this->enqueue_command_("PRSQSTN");
+  this->enqueue_command_("TUNQSTN");
+}
+
+void OnkyoIscp::tuner_preset_up() {
+  if (tuner_band_ == TunerBand::UNKNOWN) {
+    ESP_LOGW(TAG, "Cannot select next preset while no tuner band is active");
+    return;
+  }
+
+  this->enqueue_command_("PRSUP");
+  this->enqueue_command_("PRSQSTN");
+  this->enqueue_command_("TUNQSTN");
+}
+
+void OnkyoIscp::tuner_preset_down() {
+  if (tuner_band_ == TunerBand::UNKNOWN) {
+    ESP_LOGW(TAG, "Cannot select previous preset while no tuner band is active");
+    return;
+  }
+
+  this->enqueue_command_("PRSDOWN");
+  this->enqueue_command_("PRSQSTN");
+  this->enqueue_command_("TUNQSTN");
 }
 
 void OnkyoIscp::process_tuner_frequency_(const std::string &value) {
@@ -1073,8 +1098,7 @@ void OnkyoIscp::process_command_(const std::string& command,
     }
 
     if (value == "24" || value == "25" || value == "26") {
-      this->enqueue_command_("TUNQSTN");
-      this->enqueue_command_("PRSQSTN");
+      this->query_tuner();
     }
   } else if (command == "LMD" && listening_mode_select_ != nullptr) {
     const std::string name = listening_mode_code_to_name_(value);
@@ -1190,20 +1214,35 @@ void OnkyoIscp::process_command_(const std::string& command,
   } else {
     ESP_LOGW(TAG, "Unknown RDS response: %s", value.c_str());
   }
+
 } else if (command == "PTS") {
+  if (value == "N/A") {
+    ESP_LOGD(TAG, "PTY scan is not available for the current station");
+  } else if (value == "SCAN") {
+    ESP_LOGD(TAG, "PTY scan started");
+  } else {
     const std::string name = pty_code_to_name_(value);
 
     if (!name.empty()) {
       if (pty_select_ != nullptr) {
         pty_select_->publish_state(name);
       }
+
       ESP_LOGD(TAG, "PTY state: %s", name.c_str());
     } else {
-      ESP_LOGD(TAG, "PTY response: %s", value.c_str());
+      ESP_LOGW(TAG, "Unknown PTY response: %s", value.c_str());
     }
+  }
 
-  } else if (command == "TPS") {
+} else if (command == "TPS") {
+  if (value == "N/A") {
+    ESP_LOGD(TAG, "TP scan is not available for the current station");
+  } else if (value == "SCAN") {
+    ESP_LOGD(TAG, "TP scan started");
+  } else {
     ESP_LOGD(TAG, "TP scan response: %s", value.c_str());
+  }
+
 } else if (command == "FLD" && display_sensor_ != nullptr) {
   display_sensor_->publish_state(value);
 
@@ -1466,13 +1505,13 @@ void OnkyoTunerPresetNumber::control(float value) {
 
 void OnkyoPresetUpButton::press_action() {
   if (parent_ != nullptr) {
-    parent_->send_command("PRSUP");
+    parent_->tuner_preset_up();
   }
 }
 
 void OnkyoPresetDownButton::press_action() {
   if (parent_ != nullptr) {
-    parent_->send_command("PRSDOWN");
+    parent_->tuner_preset_down();
   }
 }
 

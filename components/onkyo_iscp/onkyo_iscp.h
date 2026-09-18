@@ -377,6 +377,9 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   void set_pty(const std::string &pty);
   void start_pty_scan();
   void start_tp_scan();
+  void query_tuner();
+  void tuner_preset_up();
+  void tuner_preset_down();
 
 
   void set_connected_binary_sensor(binary_sensor::BinarySensor* entity) { connected_binary_sensor_ = entity; }
