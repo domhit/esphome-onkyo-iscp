@@ -322,18 +322,18 @@ class OnkyoPtyScanButton : public button::Button {
  public:
   void set_parent(OnkyoIscp *parent) { parent_ = parent; }
 
- pr*tected:
-  void press_action() over*ide;
-  OnkyoIscp *parent_{nullptr}*
+ protected:
+  void press_action() override;
+  OnkyoIscp *parent_{nullptr};
 };
 
-class OnkyoTpScanButton : pub*ic button::Button {
+class OnkyoTpScanButton : public button::Button {
  public:
-  voi* set_parent(OnkyoIscp *parent) { p*rent_ = parent; }
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
 
  protected:
-  v*id press_action() override;
-  Onky*Iscp *parent_{nullptr};
+  void press_action() override;
+  OnkyoIscp *parent_{nullptr};
 };
 
 //Main ####################################################################################

@@ -1203,7 +1203,7 @@ void OnkyoIscp::process_command_(const std::string& command,
     }
 
   } else if (command == "TPS") {
-    ESP_LOGD(TAG,*"TP scan response: %s", value.c_st*());
+    ESP_LOGD(TAG,*"TP scan response: %s", value.c_str());
 } else if (command == "FLD" && display_sensor_ != nullptr) {
   display_sensor_->publish_state(value);
 
