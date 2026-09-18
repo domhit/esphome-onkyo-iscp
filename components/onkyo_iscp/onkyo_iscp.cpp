@@ -318,23 +318,23 @@ std::string OnkyoIscp::late_night_code_to_name_(
   return {};
 }
 
-std::string OnkyoIscp::late_night_code_to_name_(
-    const std::string &code
+std::string OnkyoIscp::late_night_name_to_code_(
+    const std::string &name
 ) {
-  if (code == "00") {
-    return "Off";
+  if (name == "Off") {
+    return "00";
   }
 
-  if (code == "01") {
-    return "Low";
+  if (name == "Low") {
+    return "01";
   }
 
-  if (code == "02") {
-    return "High";
+  if (name == "High") {
+    return "02";
   }
 
-  if (code == "03") {
-    return "Auto";
+  if (name == "Auto") {
+    return "03";
   }
 
   return {};
