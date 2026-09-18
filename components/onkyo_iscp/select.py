@@ -3,13 +3,15 @@ import esphome.config_validation as cv
 from esphome.components import select
 
 from . import OnkyoIscp, onkyo_iscp_ns
-from .const import CONF_DIMMER, CONF_DYNAMIC_VOLUME, CONF_INPUT, CONF_LATE_NIGHT, CONF_LISTENING_MODE, CONF_ONKYO_ISCP_ID
+from .const import CONF_DIMMER, CONF_DYNAMIC_VOLUME, CONF_INPUT, CONF_LATE_NIGHT, CONF_LISTENING_MODE, CONF_ONKYO_ISCP_ID, CONF_AUDIO_SELECTOR, CONF_SPEAKER_LAYOUT
 
 OnkyoInputSelect = onkyo_iscp_ns.class_("OnkyoInputSelect", select.Select)
 OnkyoListeningModeSelect = onkyo_iscp_ns.class_("OnkyoListeningModeSelect", select.Select,)
 OnkyoDynamicVolumeSelect = onkyo_iscp_ns.class_("OnkyoDynamicVolumeSelect", select.Select,)
 OnkyoLateNightSelect = onkyo_iscp_ns.class_("OnkyoLateNightSelect", select.Select,)
 OnkyoDimmerSelect = onkyo_iscp_ns.class_("OnkyoDimmerSelect", select.Select,)
+OnkyoAudioSelectorSelect = onkyo_iscp_ns.class_("OnkyoAudioSelectorSelect", select.Select,)
+OnkyoSpeakerLayoutSelect = onkyo_iscp_ns.class_("OnkyoSpeakerLayoutSelect", select.Select,)
 
 INPUT_OPTIONS = [
     "VCR/DVR", "CBL/SAT", "GAME/TV", "AUX", "PC",
@@ -83,6 +85,19 @@ DIMMER_OPTIONS = [
     "Dark",
 ]
 
+AUDIO_SELECTOR_OPTIONS = [
+    "Analog",
+    "HDMI",
+    "Coax/Optical",
+    "ARC",
+]
+
+SPEAKER_LAYOUT_OPTIONS = [
+    "Surround Back",
+    "Front High",
+    "Front Wide",
+]
+
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(CONF_ONKYO_ISCP_ID): cv.use_id(OnkyoIscp),
@@ -106,6 +121,14 @@ CONFIG_SCHEMA = cv.Schema(
             OnkyoDimmerSelect,
             icon="mdi:brightness-6",
         ),
+        cv.Optional(CONF_AUDIO_SELECTOR): select.select_schema(
+            OnkyoAudioSelectorSelect,
+            icon="mdi:audio-input-stereo-minijack",
+        ),
+        cv.Optional(CONF_SPEAKER_LAYOUT): select.select_schema(
+            OnkyoSpeakerLayoutSelect,
+            icon="mdi:speaker-multiple",
+        ),
     }
 )
 
@@ -128,6 +151,14 @@ async def to_code(config):
         cg.add(var.set_parent(parent))
         cg.add(parent.set_late_night_select(var))
     if dimmer_config := config.get(CONF_DIMMER):
-        var = await select.new_select(dimmer_config,  options=DIMMER_OPTIONS,)
+        var = await select.new_select(dimmer_config, options=DIMMER_OPTIONS,)
         cg.add(var.set_parent(parent))
         cg.add(parent.set_dimmer_select(var))
+    if audio_selector_config := config.get(CONF_AUDIO_SELECTOR):
+        var = await select.new_select(audio_selector_config, options=AUDIO_SELECTOR_OPTIONS,)
+        cg.add(var.set_parent(parent))
+        cg.add(parent.set_audio_selector_select(var))
+    if speaker_layout_config := config.get(CONF_SPEAKER_LAYOUT):
+        var = await select.new_select(speaker_layout_config,  options=SPEAKER_LAYOUT_OPTIONS,)
+        cg.add(var.set_parent(parent))
+        cg.add(parent.set_speaker_layout_select(var))

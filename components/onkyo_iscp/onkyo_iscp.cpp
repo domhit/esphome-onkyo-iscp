@@ -126,6 +126,8 @@ void OnkyoIscp::query_all() {
   this->enqueue_command_("MOTQSTN");
   this->enqueue_command_("DIMQSTN");
   this->enqueue_command_("SLPQSTN");
+  this->enqueue_command_("SLAQSTN");
+  this->enqueue_command_("SPLQSTN");
 }
 
 void OnkyoIscp::set_audyssey(bool state) {
@@ -294,6 +296,44 @@ void OnkyoIscp::process_sleep_timer_(
   );
 }
 
+void OnkyoIscp::set_audio_selector(
+    const std::string &selector
+) {
+  const std::string code =
+      audio_selector_name_to_code_(selector);
+
+  if (code.empty()) {
+    ESP_LOGW(
+        TAG,
+        "Unknown audio selector option: %s",
+        selector.c_str()
+    );
+    return;
+  }
+
+  this->send_command("SLA" + code);
+  this->enqueue_command_("SLAQSTN");
+}
+
+void OnkyoIscp::set_speaker_layout(
+    const std::string &layout
+) {
+  const std::string code =
+      speaker_layout_name_to_code_(layout);
+
+  if (code.empty()) {
+    ESP_LOGW(
+        TAG,
+        "Unknown speaker layout option: %s",
+        layout.c_str()
+    );
+    return;
+  }
+
+  this->send_command("SPL" + code);
+  this->enqueue_command_("SPLQSTN");
+}
+
 std::string OnkyoIscp::dynamic_volume_code_to_name_(
     const std::string &code
 ) {
@@ -333,6 +373,86 @@ std::string OnkyoIscp::dynamic_volume_name_to_code_(
 
   if (name == "Heavy") {
     return "03";
+  }
+
+  return {};
+}
+
+std::string OnkyoIscp::audio_selector_code_to_name_(
+    const std::string &code
+) {
+  if (code == "02") {
+    return "Analog";
+  }
+
+  if (code == "04") {
+    return "HDMI";
+  }
+
+  if (code == "05") {
+    return "Coax/Optical";
+  }
+
+  if (code == "07") {
+    return "ARC";
+  }
+
+  return {};
+}
+
+std::string OnkyoIscp::audio_selector_name_to_code_(
+    const std::string &name
+) {
+  if (name == "Analog") {
+    return "02";
+  }
+
+  if (name == "HDMI") {
+    return "04";
+  }
+
+  if (name == "Coax/Optical") {
+    return "05";
+  }
+
+  if (name == "ARC") {
+    return "07";
+  }
+
+  return {};
+}
+
+std::string OnkyoIscp::speaker_layout_code_to_name_(
+    const std::string &code
+) {
+  if (code == "SB") {
+    return "Surround Back";
+  }
+
+  if (code == "FH") {
+    return "Front High";
+  }
+
+  if (code == "FW") {
+    return "Front Wide";
+  }
+
+  return {};
+}
+
+std::string OnkyoIscp::speaker_layout_name_to_code_(
+    const std::string &name
+) {
+  if (name == "Surround Back") {
+    return "SB";
+  }
+
+  if (name == "Front High") {
+    return "FH";
+  }
+
+  if (name == "Front Wide") {
+    return "FW";
   }
 
   return {};
@@ -961,6 +1081,39 @@ void OnkyoIscp::process_command_(const std::string &command, const std::string &
   } else if (command == "SLP") {
     this->process_sleep_timer_(value);
 
+  } else if (
+      command == "SLA" &&
+      audio_selector_select_ != nullptr
+  ) {
+    const std::string name =
+        audio_selector_code_to_name_(value);
+
+    if (!name.empty()) {
+      audio_selector_select_->publish_state(name);
+    } else {
+      ESP_LOGW(
+          TAG,
+          "Unknown audio selector state: %s",
+          value.c_str()
+      );
+    }
+
+  } else if (
+      command == "SPL" &&
+      speaker_layout_select_ != nullptr
+  ) {
+    const std::string name =
+        speaker_layout_code_to_name_(value);
+
+    if (!name.empty()) {
+      speaker_layout_select_->publish_state(name);
+    } else {
+      ESP_LOGW(
+          TAG,
+          "Unknown speaker layout state: %s",
+          value.c_str()
+      );
+    }
 
   } else if (command == "FLD" && display_sensor_ != nullptr) {
     display_sensor_->publish_state(value);
@@ -1126,4 +1279,6 @@ void OnkyoMusicOptimizerSwitch::write_state(bool state) { if (parent_ != nullptr
 void OnkyoLateNightSelect::control(const std::string &value) { if (parent_ != nullptr) { parent_->set_late_night(value); } }
 void OnkyoDimmerSelect::control(const std::string &value) { if (parent_ != nullptr) { parent_->set_dimmer(value); } }
 void OnkyoSleepTimerNumber::control(float value) { if (parent_ != nullptr) { parent_->set_sleep_timer(value); } }
+void OnkyoAudioSelectorSelect::control(const std::string &value) { if (parent_ != nullptr) { parent_->set_audio_selector(value); } }
+void OnkyoSpeakerLayoutSelect::control(const std::string &value) { if (parent_ != nullptr) { parent_->set_speaker_layout(value); } }
 }  // namespace esphome::onkyo_iscp

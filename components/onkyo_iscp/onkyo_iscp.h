@@ -158,6 +158,23 @@ class OnkyoDimmerSelect : public select::Select {
   OnkyoIscp *parent_{nullptr};
 };
 
+class OnkyoAudioSelectorSelect : public select::Select {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+ protected:
+  void control(const std::string &value) override;
+  OnkyoIscp *parent_{nullptr};
+};
+
+
+class OnkyoSpeakerLayoutSelect : public select::Select {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+ protected:
+  void control(const std::string &value) override;
+  OnkyoIscp *parent_{nullptr};
+};
+
 class OnkyoVolumeUpButton : public button::Button {
  public:
   void set_parent(OnkyoIscp *parent) { parent_ = parent; }
@@ -207,6 +224,8 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   void set_late_night(const std::string &mode);
   void set_dynamic_volume(const std::string &mode);
   void set_input(const std::string &input);
+  void set_audio_selector(const std::string &selector);
+  void set_speaker_layout(const std::string &layout);
   void set_listening_mode(const std::string &listening_mode);
   void set_connected_binary_sensor(binary_sensor::BinarySensor *entity) { connected_binary_sensor_ = entity;}
   void set_power_switch(OnkyoPowerSwitch *entity) { power_switch_ = entity; }
@@ -228,6 +247,8 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   void set_last_frame_sensor(text_sensor::TextSensor *entity) { last_frame_sensor_ = entity; }
   void set_last_unknown_frame_sensor(text_sensor::TextSensor *entity) { last_unknown_frame_sensor_ = entity; }
   void set_display_sensor(text_sensor::TextSensor *entity) { display_sensor_ = entity; }
+  void set_audio_selector_select(OnkyoAudioSelectorSelect *entity) {audio_selector_select_ = entity; }
+  void set_speaker_layout_select(OnkyoSpeakerLayoutSelect *entity) {speaker_layout_select_ = entity; }
   void set_listening_mode_select(OnkyoListeningModeSelect *entity) { listening_mode_select_ = entity; }
 
  protected:
@@ -257,6 +278,10 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   static bool level_code_to_value_(const std::string &code, float &value);
   static std::string dimmer_code_to_name_(const std::string &code);
   static std::string dimmer_name_to_code_(const std::string &name);
+  static std::string audio_selector_code_to_name_(const std::string &code);
+  static std::string audio_selector_name_to_code_(const std::string &name);
+  static std::string speaker_layout_code_to_name_(const std::string &code);
+  static std::string speaker_layout_name_to_code_(const std::string &name);
   void process_sleep_timer_(const std::string &value);
 
 
@@ -287,6 +312,8 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   OnkyoListeningModeSelect *listening_mode_select_{nullptr};
   OnkyoLateNightSelect *late_night_select_{nullptr};
   OnkyoDimmerSelect *dimmer_select_{nullptr};
+  OnkyoAudioSelectorSelect *audio_selector_select_{nullptr};
+  OnkyoSpeakerLayoutSelect *speaker_layout_select_{nullptr};
   text_sensor::TextSensor *last_frame_sensor_{nullptr};
   text_sensor::TextSensor *last_unknown_frame_sensor_{nullptr};
   text_sensor::TextSensor *display_sensor_{nullptr};
