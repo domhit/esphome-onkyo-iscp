@@ -402,6 +402,12 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   void set_last_frame_sensor(text_sensor::TextSensor* entity) { last_frame_sensor_ = entity; }
   void set_last_unknown_frame_sensor(text_sensor::TextSensor* entity) { last_unknown_frame_sensor_ = entity; }
   void set_display_sensor(text_sensor::TextSensor* entity) { display_sensor_ = entity; }
+  void set_hdmi_audio_out_raw_sensor(text_sensor::TextSensor *entity) { hdmi_audio_out_raw_sensor_ = entity; }
+  void set_monitor_resolution_raw_sensor(text_sensor::TextSensor *entity) { monitor_resolution_raw_sensor_ = entity; }
+  void set_video_wide_mode_raw_sensor(text_sensor::TextSensor *entity) { video_wide_mode_raw_sensor_ = entity; }
+  void set_picture_mode_raw_sensor(text_sensor::TextSensor *entity) { picture_mode_raw_sensor_ = entity; }
+  void set_audio_information_sensor(text_sensor::TextSensor *entity) { audio_information_sensor_ = entity; }
+  void set_video_information_sensor(text_sensor::TextSensor *entity) { video_information_sensor_ = entity; }
   void set_audio_selector_select(OnkyoAudioSelectorSelect* entity) { audio_selector_select_ = entity; }
   void set_speaker_layout_select(OnkyoSpeakerLayoutSelect* entity) { speaker_layout_select_ = entity; }
   void set_listening_mode_select(OnkyoListeningModeSelect* entity) { listening_mode_select_ = entity; }
@@ -488,6 +494,12 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   text_sensor::TextSensor* last_unknown_frame_sensor_{nullptr};
   text_sensor::TextSensor* display_sensor_{nullptr};
   binary_sensor::BinarySensor* connected_binary_sensor_{nullptr};
+  text_sensor::TextSensor *hdmi_audio_out_raw_sensor_{nullptr};
+  text_sensor::TextSensor *monitor_resolution_raw_sensor_{nullptr};
+  text_sensor::TextSensor *video_wide_mode_raw_sensor_{nullptr};
+  text_sensor::TextSensor *picture_mode_raw_sensor_{nullptr};
+  text_sensor::TextSensor *audio_information_sensor_{nullptr};
+  text_sensor::TextSensor *video_information_sensor_{nullptr};
 };
 
 template <typename... Ts>

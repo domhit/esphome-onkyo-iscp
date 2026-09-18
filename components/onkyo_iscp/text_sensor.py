@@ -4,7 +4,18 @@ from esphome.components import text_sensor
 from esphome.const import ENTITY_CATEGORY_DIAGNOSTIC
 
 from . import OnkyoIscp
-from .const import CONF_DISPLAY, CONF_LAST_FRAME, CONF_LAST_UNKNOWN_FRAME, CONF_ONKYO_ISCP_ID
+from .const import (
+    CONF_AUDIO_INFORMATION,
+    CONF_DISPLAY,
+    CONF_HDMI_AUDIO_OUT_RAW,
+    CONF_LAST_FRAME,
+    CONF_LAST_UNKNOWN_FRAME,
+    CONF_MONITOR_RESOLUTION_RAW,
+    CONF_ONKYO_ISCP_ID,
+    CONF_PICTURE_MODE_RAW,
+    CONF_VIDEO_INFORMATION,
+    CONF_VIDEO_WIDE_MODE_RAW,
+)
 
 CONFIG_SCHEMA = cv.Schema(
     {
@@ -20,6 +31,30 @@ CONFIG_SCHEMA = cv.Schema(
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             icon="mdi:help-box-outline"
         ),
+                cv.Optional(CONF_HDMI_AUDIO_OUT_RAW): text_sensor.text_sensor_schema(
+            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+            icon="mdi:hdmi-port",
+        ),
+        cv.Optional(CONF_MONITOR_RESOLUTION_RAW): text_sensor.text_sensor_schema(
+            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+            icon="mdi:monitor",
+        ),
+        cv.Optional(CONF_VIDEO_WIDE_MODE_RAW): text_sensor.text_sensor_schema(
+            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+            icon="mdi:aspect-ratio",
+        ),
+        cv.Optional(CONF_PICTURE_MODE_RAW): text_sensor.text_sensor_schema(
+            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+            icon="mdi:image-filter-center-focus",
+        ),
+        cv.Optional(CONF_AUDIO_INFORMATION): text_sensor.text_sensor_schema(
+            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+            icon="mdi:waveform",
+        ),
+        cv.Optional(CONF_VIDEO_INFORMATION): text_sensor.text_sensor_schema(
+            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+            icon="mdi:video-outline",
+        ),
     }
 )
 
@@ -34,3 +69,26 @@ async def to_code(config):
     if display_config := config.get(CONF_DISPLAY):
         var = await text_sensor.new_text_sensor(display_config)
         cg.add(parent.set_display_sensor(var))
+    if config_value := config.get(CONF_HDMI_AUDIO_OUT_RAW):
+        var = await text_sensor.new_text_sensor(config_value)
+        cg.add(parent.set_hdmi_audio_out_raw_sensor(var))
+
+    if config_value := config.get(CONF_MONITOR_RESOLUTION_RAW):
+        var = await text_sensor.new_text_sensor(config_value)
+        cg.add(parent.set_monitor_resolution_raw_sensor(var))
+
+    if config_value := config.get(CONF_VIDEO_WIDE_MODE_RAW):
+        var = await text_sensor.new_text_sensor(config_value)
+        cg.add(parent.set_video_wide_mode_raw_sensor(var))
+
+    if config_value := config.get(CONF_PICTURE_MODE_RAW):
+        var = await text_sensor.new_text_sensor(config_value)
+        cg.add(parent.set_picture_mode_raw_sensor(var))
+
+    if config_value := config.get(CONF_AUDIO_INFORMATION):
+        var = await text_sensor.new_text_sensor(config_value)
+        cg.add(parent.set_audio_information_sensor(var))
+
+    if config_value := config.get(CONF_VIDEO_INFORMATION):
+        var = await text_sensor.new_text_sensor(config_value)
+        cg.add(parent.set_video_information_sensor(var))

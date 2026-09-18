@@ -25,6 +25,30 @@ void OnkyoIscp::setup() {
   if (last_unknown_frame_sensor_ != nullptr) {
     last_unknown_frame_sensor_->publish_state("none");
   }
+  if (hdmi_audio_out_raw_sensor_ != nullptr) {
+  hdmi_audio_out_raw_sensor_->publish_state("unknown");
+  }
+
+  if (monitor_resolution_raw_sensor_ != nullptr) {
+    monitor_resolution_raw_sensor_->publish_state("unknown");
+  }
+
+  if (video_wide_mode_raw_sensor_ != nullptr) {
+    video_wide_mode_raw_sensor_->publish_state("unknown");
+  }
+
+  if (picture_mode_raw_sensor_ != nullptr) {
+    picture_mode_raw_sensor_->publish_state("unknown");
+  }
+
+  if (audio_information_sensor_ != nullptr) {
+    audio_information_sensor_->publish_state("unknown");
+  }
+
+  if (video_information_sensor_ != nullptr) {
+    video_information_sensor_->publish_state("unknown");
+  }
+
 
   ESP_LOGI(TAG, "Onkyo ISCP UART component started");
   this->enqueue_command_("PWRQSTN");
@@ -125,6 +149,8 @@ void OnkyoIscp::query_all() {
   this->enqueue_command_("SLPQSTN");
   this->enqueue_command_("SLAQSTN");
   this->enqueue_command_("SPLQSTN");
+
+  this->query_video_information();
 }
 
 void OnkyoIscp::query_tuner() {
@@ -1084,6 +1110,15 @@ void OnkyoIscp::process_frame_(std::string frame) {
   this->process_command_(command, frame.substr(3));
 }
 
+void OnkyoIscp::query_video_information() {
+  this->enqueue_command_("HAOQSTN");
+  this->enqueue_command_("RESQSTN");
+  this->enqueue_command_("VWMQSTN");
+  this->enqueue_command_("VPMQSTN");
+  this->enqueue_command_("IFAQSTN");
+  this->enqueue_command_("IFVQSTN");
+}
+
 void OnkyoIscp::process_command_(const std::string& command,
                                  const std::string& value) {
   if (command == "PWR" && power_switch_ != nullptr) {
@@ -1263,9 +1298,43 @@ void OnkyoIscp::process_command_(const std::string& command,
   } else {
     ESP_LOGD(TAG, "TP scan response: %s", value.c_str());
   }
+} else if (command == "HAO") {
+  if (hdmi_audio_out_raw_sensor_ != nullptr) {
+    hdmi_audio_out_raw_sensor_->publish_state(value);
+  }
+
+} else if (command == "RES") {
+  if (monitor_resolution_raw_sensor_ != nullptr) {
+    monitor_resolution_raw_sensor_->publish_state(value);
+  }
+
+} else if (command == "VWM") {
+  if (video_wide_mode_raw_sensor_ != nullptr) {
+    video_wide_mode_raw_sensor_->publish_state(value);
+  }
+
+} else if (command == "VPM") {
+  if (picture_mode_raw_sensor_ != nullptr) {
+    picture_mode_raw_sensor_->publish_state(value);
+  }
+
+} else if (command == "IFA") {
+  if (value.empty()) {
+    ESP_LOGW(TAG, "Empty audio information response");
+  } else if (audio_information_sensor_ != nullptr) {
+    audio_information_sensor_->publish_state(value);
+  }
+
+} else if (command == "IFV") {
+  if (value.empty()) {
+    ESP_LOGW(TAG, "Empty video information response");
+  } else if (video_information_sensor_ != nullptr) {
+    video_information_sensor_->publish_state(value);
+  }
 
 } else if (command == "FLD" && display_sensor_ != nullptr) {
   display_sensor_->publish_state(value);
+
 
 } else {
     const std::string unknown_frame = command + value;
