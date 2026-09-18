@@ -277,7 +277,7 @@ void OnkyoIscp::process_sleep_timer_(
 
   if (
       end == value.c_str() ||
-      end != '\0' ||
+      *end != '\0' ||
       minutes < 0 ||
       minutes > 90
   ) {
