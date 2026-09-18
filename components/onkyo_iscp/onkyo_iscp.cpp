@@ -189,7 +189,7 @@ std::string OnkyoIscp::level_value_to_code_(
   );
 
   if (rounded == 0) {
-    return "00"
+    return "00";
   }
 
   const char sign = rounded > 0 ? '+' : '-';
