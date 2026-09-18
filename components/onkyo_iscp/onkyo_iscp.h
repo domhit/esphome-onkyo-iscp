@@ -59,6 +59,31 @@ class OnkyoFrontTrebleNumber : public number::Number {
   OnkyoIscp *parent_{nullptr};
 };
 
+class OnkyoSubwooferLevelNumber : public number::Number {
+ public:
+  void set_parent(OnkyoIscp *parent) {
+    parent_ = parent;
+  }
+
+ protected:
+  void control(float value) override;
+
+  OnkyoIscp *parent_{nullptr};
+};
+
+
+class OnkyoCenterLevelNumber : public number::Number {
+ public:
+  void set_parent(OnkyoIscp *parent) {
+    parent_ = parent;
+  }
+
+ protected:
+  void control(float value) override;
+
+  OnkyoIscp *parent_{nullptr};
+};
+
 class OnkyoInputSelect : public select::Select {
  public:
   void set_parent(OnkyoIscp *parent) { parent_ = parent; }
@@ -113,6 +138,8 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   void set_volume(float raw_value);
   void set_front_bass(float value);
   void set_front_treble(float value);
+  void set_subwoofer_level(float value);
+  void set_center_level(float value);
   void set_input(const std::string &input);
   void set_listening_mode(const std::string &listening_mode);
   void set_connected_binary_sensor(binary_sensor::BinarySensor *entity) { connected_binary_sensor_ = entity;}
@@ -121,6 +148,8 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   void set_volume_number(OnkyoVolumeNumber *entity) { volume_number_ = entity; }
   void set_front_bass_number(OnkyoFrontBassNumber *entity) { front_bass_number_ = entity; }
   void set_front_treble_number(OnkyoFrontTrebleNumber *entity) { front_treble_number_ = entity; }
+  void set_subwoofer_level_number(OnkyoSubwooferLevelNumber *entity) { subwoofer_level_number_ = entity; }
+  void set_center_level_number(OnkyoCenterLevelNumber *entity) { center_level_number_ = entity; }
   void set_input_select(OnkyoInputSelect *entity) { input_select_ = entity; }
   void set_last_frame_sensor(text_sensor::TextSensor *entity) { last_frame_sensor_ = entity; }
   void set_last_unknown_frame_sensor(text_sensor::TextSensor *entity) { last_unknown_frame_sensor_ = entity; }
@@ -136,6 +165,8 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   void mark_receiver_online_();
   void check_receiver_timeout_();
   void process_front_tone_(const std::string &value);
+  void process_subwoofer_level_(const std::string &value);
+  void process_center_level_(const std::string &value);
 
   static std::string normalize_frame_(std::string frame);
   static std::string input_code_to_name_(const std::string &code);
@@ -144,6 +175,9 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   static std::string listening_mode_name_to_code_(const std::string &name);
   static std::string tone_value_to_code_(float value);
   static bool tone_code_to_value_(const std::string &code, float &value);
+
+  static std::string level_value_to_code_(float value, int minimum, int maximum);
+  static bool level_code_to_value_(const std::string &code, float &value);
 
   std::string rx_buffer_;
   std::deque<std::string> command_queue_;
@@ -160,6 +194,8 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   OnkyoVolumeNumber *volume_number_{nullptr};
   OnkyoFrontBassNumber *front_bass_number_{nullptr};
   OnkyoFrontTrebleNumber *front_treble_number_{nullptr};
+  OnkyoSubwooferLevelNumber *subwoofer_level_number_{nullptr};
+  OnkyoCenterLevelNumber *center_level_number_{nullptr};
   OnkyoInputSelect *input_select_{nullptr};
   OnkyoListeningModeSelect *listening_mode_select_{nullptr};
   text_sensor::TextSensor *last_frame_sensor_{nullptr};

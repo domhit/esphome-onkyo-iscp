@@ -116,6 +116,8 @@ void OnkyoIscp::query_all() {
   this->enqueue_command_("SLIQSTN");
   this->enqueue_command_("LMDQSTN");
   this->enqueue_command_("TFRQSTN");
+  this->enqueue_command_("SWLQSTN");
+  this->enqueue_command_("CTLQSTN");
 }
 
 std::string OnkyoIscp::tone_value_to_code_(float value) {
@@ -174,10 +176,106 @@ bool OnkyoIscp::tone_code_to_value_(const std::string &code, float &value) {
   return true;
 }
 
+std::string OnkyoIscp::level_value_to_code_(
+    float value,
+    int minimum,
+    int maximum
+) {
+  int rounded = static_cast<int>(std::lround(value));
+
+  rounded = std::max(
+      minimum,
+      std::min(maximum, rounded)
+  );
+
+  if (rounded == 0) {
+    return "00"
+  }
+
+  const char sign = rounded > 0 ? '+' : '-';
+  const int magnitude = std::abs(rounded);
+
+  char magnitude_character;
+
+  if (magnitude <= 9) {
+    magnitude_character =
+        static_cast<char>('0' + magnitude);
+  } else {
+    magnitude_character =
+        static_cast<char>('A' + magnitude - 10);
+  }
+
+  std::string result;
+  result.push_back(sign);
+  result.push_back(magnitude_character);
+
+  return result;
+}
+
+bool OnkyoIscp::level_code_to_value_(
+    const std::string &code,
+    float &value
+) {
+  if (code == "00") {
+    value = 0.0f;
+    return true;
+  }
+
+  if (code.size() != 2) {
+    return false;
+  }
+
+  const char sign = code[0];
+  const char magnitude_character = code[1];
+
+  if (sign != '+' && sign != '-') {
+    return false;
+  }
+
+  int magnitude;
+
+  if (
+      magnitude_character >= '0' &&
+      magnitude_character <= '9'
+  ) {
+    magnitude = magnitude_character - '0';
+  } else if (
+      magnitude_character >= 'A' &&
+      magnitude_character <= 'F'
+  ) {    magnitude =
+        10 + magnitude_character - 'A';
+  } else {
+    return false;
+  }
+
+  value = static_cast<float>(
+      sign == '-' ? -magnitude : magnitude
+  );
+
+  return true;
+}
+
 void OnkyoIscp::set_power(bool state) { this->send_command(state ? "PWR01" : "PWR00"); }
 void OnkyoIscp::set_mute(bool state) { this->send_command(state ? "AMT01" : "AMT00"); }
 void OnkyoIscp::set_front_bass(float value) {this->send_command("TFRB" + tone_value_to_code_(value)); }
 void OnkyoIscp::set_front_treble(float value) {this->send_command("TFRT" + tone_value_to_code_(value)); }
+void OnkyoIscp::set_subwoofer_level(float value) {
+  const std::string code =
+      level_value_to_code_(value, -15, 12);
+
+  this->send_command("SWL" + code);
+  this->enqueue_command_("SWLQSTN");
+}
+
+
+void OnkyoIscp::set_center_level(float value) {
+  const std::string code =
+      level_value_to_code_(value, -12, 12);
+
+  this->send_command("CTL" + code);
+  this->enqueue_command_("CTLQSTN");
+}
+
 void OnkyoIscp::set_volume(float raw_value) {
   int value = std::max(0, std::min(100, static_cast<int>(raw_value + 0.5f)));
   char command[8];
@@ -252,6 +350,63 @@ void OnkyoIscp::process_front_tone_(
         "Invalid TFR response: %s",
         value.c_str()
     );
+  }
+}
+
+void OnkyoIscp::process_subwoofer_level_(
+    const std::string &value
+) {
+  float level;
+
+  if (!level_code_to_value_(value, level)) {
+    ESP_LOGW(
+        TAG,
+        "Invalid subwoofer level response: %s",
+        value.c_str()
+    );
+    return;
+  }
+
+  if (level < -15.0f || level > 12.0f) {
+    ESP_LOGW(
+        TAG,
+        "Subwoofer level is out of range: %.0f",
+        level
+    );
+    return;
+  }
+
+  if (subwoofer_level_number_ != nullptr) {
+    subwoofer_level_number_->publish_state(level);
+  }
+}
+
+
+void OnkyoIscp::process_center_level_(
+    const std::string &value
+) {
+  float level;
+
+  if (!level_code_to_value_(value, level)) {
+    ESP_LOGW(
+        TAG,
+        "Invalid center level response: %s",
+        value.c_str()
+    );
+    return;
+  }
+
+  if (level < -12.0f || level > 12.0f) {
+    ESP_LOGW(
+        TAG,
+        "Center level is out of range: %.0f",
+        level
+    );
+    return;
+  }
+
+  if (center_level_number_ != nullptr) {
+    center_level_number_->publish_state(level);
   }
 }
 
@@ -386,6 +541,12 @@ void OnkyoIscp::process_command_(const std::string &command, const std::string &
     }
   } else if (command == "TFR") {
     this->process_front_tone_(value);
+  } else if (command == "SWL") {
+    this->process_subwoofer_level_(value);
+
+  } else if (command == "CTL") {
+    this->process_center_level_(value);
+
   } else if (command == "FLD" && display_sensor_ != nullptr) {
     display_sensor_->publish_state(value);
   } else {
@@ -535,6 +696,8 @@ void OnkyoMuteSwitch::write_state(bool state) { if (parent_) parent_->set_mute(s
 void OnkyoVolumeNumber::control(float value) { if (parent_) parent_->set_volume(value); }
 void OnkyoFrontBassNumber::control(float value) { if (parent_ != nullptr) { parent_->set_front_bass(value); } }
 void OnkyoFrontTrebleNumber::control(float value) { if (parent_ != nullptr) { parent_->set_front_treble(value); } }
+void OnkyoSubwooferLevelNumber::control(float value) { if (parent_ != nullptr) { parent_->set_subwoofer_level(value); } }
+void OnkyoCenterLevelNumber::control(float value) { if (parent_ != nullptr) { parent_->set_center_level(value); } }
 void OnkyoInputSelect::control(const std::string &value) { if (parent_) parent_->set_input(value); }
 void OnkyoVolumeUpButton::press_action() { if (parent_) parent_->send_command("MVLUP"); }
 void OnkyoVolumeDownButton::press_action() { if (parent_) parent_->send_command("MVLDOWN"); }
