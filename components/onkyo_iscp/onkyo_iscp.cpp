@@ -253,15 +253,31 @@ void OnkyoIscp::set_am_frequency(float frequency) {
 }
 
 void OnkyoIscp::set_tuner_preset(float preset) {
-  int value = static_cast<int>(std::lround(preset));
-  value = std::max(1, std::min(40, value));
+  if (tuner_band_ == TunerBand::UNKNOWN) {
+    ESP_LOGW(TAG, "Cannot select preset while no tuner input is active");
+    return;
+  }
+
+  const int value = static_cast<int>(std::lround(preset));
+
+  if (value == 0) {
+    ESP_LOGD(TAG, "Preset 0 represents manual tuning and cannot be selected");
+    this->enqueue_command_("PRSQSTN");
+    return;
+  }
+
+  if (value < 1 || value > 40) {
+    ESP_LOGW(TAG, "Tuner preset out of range: %d", value);
+    this->enqueue_command_("PRSQSTN");
+    return;
+  }
 
   current_tuner_preset_ = static_cast<uint8_t>(value);
 
   char command[8];
   std::snprintf(command, sizeof(command), "PRS%02X", value);
 
-  this->send_command(command);
+  this->enqueue_command_(command);
   this->enqueue_command_("PRSQSTN");
   this->enqueue_command_("TUNQSTN");
 }
@@ -355,17 +371,22 @@ void OnkyoIscp::process_tuner_preset_(const std::string &value) {
   char *end = nullptr;
   const long preset = std::strtol(value.c_str(), &end, 16);
 
-  if (
-      end == value.c_str() ||
-      *end != '\0' ||
-      preset < 1 ||
-      preset > 40
-  ) {
+  if (end == value.c_str() || *end != '\0' || preset < 0 || preset > 40) {
     ESP_LOGW(TAG, "Invalid tuner preset: %s", value.c_str());
     return;
   }
 
   current_tuner_preset_ = static_cast<uint8_t>(preset);
+
+  if (preset == 0) {
+    ESP_LOGD(TAG, "No tuner preset active, receiver is manually tuned");
+
+    if (tuner_preset_number_ != nullptr) {
+      tuner_preset_number_->publish_state(0.0f);
+    }
+
+    return;
+  }
 
   if (tuner_preset_number_ != nullptr) {
     tuner_preset_number_->publish_state(static_cast<float>(preset));

@@ -176,7 +176,7 @@ async def to_code(config):
     if preset_config := config.get(CONF_TUNER_PRESET):
         var = await number.new_number(
             preset_config,
-            min_value=1,
+            min_value=0,
             max_value=40,
             step=1,
         )
