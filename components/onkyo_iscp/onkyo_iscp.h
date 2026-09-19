@@ -27,7 +27,6 @@ class OnkyoPowerSwitch : public switch_::Switch {
   void write_state(bool state) override;
   OnkyoIscp* parent_{nullptr};
 };
-
 class OnkyoMuteSwitch : public switch_::Switch {
  public:
   void set_parent(OnkyoIscp* parent) { parent_ = parent; }
@@ -36,7 +35,6 @@ class OnkyoMuteSwitch : public switch_::Switch {
   void write_state(bool state) override;
   OnkyoIscp* parent_{nullptr};
 };
-
 class OnkyoAudysseySwitch : public switch_::Switch {
  public:
   void set_parent(OnkyoIscp* parent) { parent_ = parent; }
@@ -45,7 +43,6 @@ class OnkyoAudysseySwitch : public switch_::Switch {
   void write_state(bool state) override;
   OnkyoIscp* parent_{nullptr};
 };
-
 class OnkyoDynamicEqSwitch : public switch_::Switch {
  public:
   void set_parent(OnkyoIscp* parent) { parent_ = parent; }
@@ -54,7 +51,6 @@ class OnkyoDynamicEqSwitch : public switch_::Switch {
   void write_state(bool state) override;
   OnkyoIscp* parent_{nullptr};
 };
-
 class OnkyoReEqSwitch : public switch_::Switch {
  public:
   void set_parent(OnkyoIscp* parent) { parent_ = parent; }
@@ -63,7 +59,6 @@ class OnkyoReEqSwitch : public switch_::Switch {
   void write_state(bool state) override;
   OnkyoIscp* parent_{nullptr};
 };
-
 class OnkyoMusicOptimizerSwitch : public switch_::Switch {
  public:
   void set_parent(OnkyoIscp* parent) { parent_ = parent; }
@@ -72,7 +67,6 @@ class OnkyoMusicOptimizerSwitch : public switch_::Switch {
   void write_state(bool state) override;
   OnkyoIscp* parent_{nullptr};
 };
-
 //Numbers ####################################################################################
 class OnkyoVolumeNumber : public number::Number {
  public:
@@ -82,7 +76,6 @@ class OnkyoVolumeNumber : public number::Number {
   void control(float value) override;
   OnkyoIscp* parent_{nullptr};
 };
-
 class OnkyoFrontBassNumber : public number::Number {
  public:
   void set_parent(OnkyoIscp* parent) { parent_ = parent; }
@@ -91,7 +84,6 @@ class OnkyoFrontBassNumber : public number::Number {
   void control(float value) override;
   OnkyoIscp* parent_{nullptr};
 };
-
 class OnkyoFrontTrebleNumber : public number::Number {
  public:
   void set_parent(OnkyoIscp* parent) { parent_ = parent; }
@@ -100,7 +92,6 @@ class OnkyoFrontTrebleNumber : public number::Number {
   void control(float value) override;
   OnkyoIscp* parent_{nullptr};
 };
-
 class OnkyoSubwooferLevelNumber : public number::Number {
  public:
   void set_parent(OnkyoIscp* parent) { parent_ = parent; }
@@ -109,7 +100,6 @@ class OnkyoSubwooferLevelNumber : public number::Number {
   void control(float value) override;
   OnkyoIscp* parent_{nullptr};
 };
-
 class OnkyoCenterLevelNumber : public number::Number {
  public:
   void set_parent(OnkyoIscp* parent) { parent_ = parent; }
@@ -118,7 +108,6 @@ class OnkyoCenterLevelNumber : public number::Number {
   void control(float value) override;
   OnkyoIscp* parent_{nullptr};
 };
-
 class OnkyoSleepTimerNumber : public number::Number {
  public:
   void set_parent(OnkyoIscp* parent) { parent_ = parent; }
@@ -127,7 +116,6 @@ class OnkyoSleepTimerNumber : public number::Number {
   void control(float value) override;
   OnkyoIscp* parent_{nullptr};
 };
-
 class OnkyoFmFrequencyNumber : public number::Number {
  public:
   void set_parent(OnkyoIscp *parent) { parent_ = parent; }
@@ -136,7 +124,6 @@ class OnkyoFmFrequencyNumber : public number::Number {
   void control(float value) override;
   OnkyoIscp *parent_{nullptr};
 };
-
 class OnkyoAmFrequencyNumber : public number::Number {
  public:
   void set_parent(OnkyoIscp *parent) { parent_ = parent; }
@@ -145,7 +132,6 @@ class OnkyoAmFrequencyNumber : public number::Number {
   void control(float value) override;
   OnkyoIscp *parent_{nullptr};
 };
-
 class OnkyoTunerPresetNumber : public number::Number {
  public:
   void set_parent(OnkyoIscp *parent) { parent_ = parent; }
@@ -154,7 +140,6 @@ class OnkyoTunerPresetNumber : public number::Number {
   void control(float value) override;
   OnkyoIscp *parent_{nullptr};
 };
-
 //Selects ####################################################################################
 class OnkyoInputSelect : public select::Select {
  public:
@@ -164,7 +149,6 @@ class OnkyoInputSelect : public select::Select {
   void control(const std::string& value) override;
   OnkyoIscp* parent_{nullptr};
 };
-
 class OnkyoListeningModeSelect : public select::Select {
  public:
   void set_parent(OnkyoIscp* parent) { parent_ = parent; }
@@ -173,7 +157,6 @@ class OnkyoListeningModeSelect : public select::Select {
   void control(const std::string& value) override;
   OnkyoIscp* parent_{nullptr};
 };
-
 class OnkyoDynamicVolumeSelect : public select::Select {
  public:
   void set_parent(OnkyoIscp* parent) { parent_ = parent; }
@@ -182,7 +165,6 @@ class OnkyoDynamicVolumeSelect : public select::Select {
   void control(const std::string& value) override;
   OnkyoIscp* parent_{nullptr};
 };
-
 class OnkyoLateNightSelect : public select::Select {
  public:
   void set_parent(OnkyoIscp* parent) { parent_ = parent; }
@@ -191,7 +173,6 @@ class OnkyoLateNightSelect : public select::Select {
   void control(const std::string& value) override;
   OnkyoIscp* parent_{nullptr};
 };
-
 class OnkyoDimmerSelect : public select::Select {
  public:
   void set_parent(OnkyoIscp* parent) { parent_ = parent; }
@@ -200,7 +181,6 @@ class OnkyoDimmerSelect : public select::Select {
   void control(const std::string& value) override;
   OnkyoIscp* parent_{nullptr};
 };
-
 class OnkyoAudioSelectorSelect : public select::Select {
  public:
   void set_parent(OnkyoIscp* parent) { parent_ = parent; }
@@ -209,7 +189,6 @@ class OnkyoAudioSelectorSelect : public select::Select {
   void control(const std::string& value) override;
   OnkyoIscp* parent_{nullptr};
 };
-
 class OnkyoSpeakerLayoutSelect : public select::Select {
  public:
   void set_parent(OnkyoIscp* parent) { parent_ = parent; }
@@ -218,7 +197,6 @@ class OnkyoSpeakerLayoutSelect : public select::Select {
   void control(const std::string& value) override;
   OnkyoIscp* parent_{nullptr};
 };
-
 class OnkyoPtySelect : public select::Select {
  public:
   void set_parent(OnkyoIscp *parent) { parent_ = parent; }
@@ -227,7 +205,6 @@ class OnkyoPtySelect : public select::Select {
   void control(const std::string &value) override;
   OnkyoIscp *parent_{nullptr};
 };
-
 class OnkyoHdmiAudioOutSelect : public select::Select {
  public:
   void set_parent(OnkyoIscp *parent) { parent_ = parent; }
@@ -236,7 +213,6 @@ class OnkyoHdmiAudioOutSelect : public select::Select {
   void control(const std::string &value) override;
   OnkyoIscp *parent_{nullptr};
 };
-
 class OnkyoMonitorResolutionSelect : public select::Select {
  public:
   void set_parent(OnkyoIscp *parent) { parent_ = parent; }
@@ -245,7 +221,6 @@ class OnkyoMonitorResolutionSelect : public select::Select {
   void control(const std::string &value) override;
   OnkyoIscp *parent_{nullptr};
 };
-
 class OnkyoVideoWideModeSelect : public select::Select {
  public:
   void set_parent(OnkyoIscp *parent) { parent_ = parent; }
@@ -254,7 +229,6 @@ class OnkyoVideoWideModeSelect : public select::Select {
   void control(const std::string &value) override;
   OnkyoIscp *parent_{nullptr};
 };
-
 class OnkyoPictureModeSelect : public select::Select {
  public:
   void set_parent(OnkyoIscp *parent) { parent_ = parent; }
@@ -601,6 +575,8 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   static constexpr size_t MAX_FRAME_LENGTH = 160;
   uint32_t last_valid_frame_ms_{0};
   bool receiver_online_{false};
+  bool receiver_power_on_{false};
+  uint32_t last_full_query_ms_{0};
   static constexpr uint32_t RECEIVER_TIMEOUT_MS = 75000;
   static bool is_valid_ascii_frame_(const std::string& frame);
   uint8_t current_tuner_preset_{0};

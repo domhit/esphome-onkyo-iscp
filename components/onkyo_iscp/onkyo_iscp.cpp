@@ -107,6 +107,8 @@ void OnkyoIscp::process_queue_() {
   last_command_ms_ = now;
 }
 void OnkyoIscp::query_all() {
+  last_full_query_ms_ = millis();
+
   this->enqueue_command_("PWRQSTN");
   this->enqueue_command_("MVLQSTN");
   this->enqueue_command_("AMTQSTN");
@@ -877,11 +879,38 @@ void OnkyoIscp::send_osd_command(const std::string &command) {
 }
 // Dispatcher ##########################################################################################
 void OnkyoIscp::process_command_(const std::string& command, const std::string& value) {
-  if (command == "PWR" && power_switch_ != nullptr) {
-    if (value == "01")
-      power_switch_->publish_state(true);
-    else if (value == "00")
-      power_switch_->publish_state(false);
+  if (command == "PWR") {
+    if (value == "01") {
+      const bool power_changed = !receiver_power_on_;
+      receiver_power_on_ = true;
+
+      if (power_switch_ != nullptr) {
+        power_switch_->publish_state(true);
+      }
+
+      if (power_changed) {
+        ESP_LOGI(TAG, "Receiver powered on");
+
+        const uint32_t now = millis();
+
+        if (now - last_full_query_ms_ > 1000) {
+          ESP_LOGI(TAG, "Starting full state synchronization after power on");
+          this->query_all();
+        }
+      }
+    } else if (value == "00") {
+      if (receiver_power_on_) {
+        ESP_LOGI(TAG, "Receiver entered standby");
+      }
+
+      receiver_power_on_ = false;
+
+      if (power_switch_ != nullptr) {
+        power_switch_->publish_state(false);
+      }
+    } else {
+      ESP_LOGW(TAG, "Unknown power state: %s", value.c_str());
+    }
   } else if (command == "AMT" && mute_switch_ != nullptr) {
     if (value == "01")
       mute_switch_->publish_state(true);
@@ -1118,8 +1147,21 @@ void OnkyoIscp::process_command_(const std::string& command, const std::string& 
 
       this->process_video_information_(value);
     }
-
-  } else if (command == "FLD" && display_sensor_ != nullptr) {
+  } else if (command == "TST") {
+    if (value == "N/A") {
+      ESP_LOGD(TAG, "TST function is not available");
+    } else {
+      ESP_LOGD(TAG, "TST response: %s", value.c_str());
+    }
+  } else if (command == "SLZ") {
+    ESP_LOGD(TAG, "Zone 2 input selector notification: %s", value.c_str());
+  } else if (command == "OSD") {
+    if (value == "N/A") {
+      ESP_LOGD(TAG, "OSD command is not available in the current context");
+    } else {
+      ESP_LOGD(TAG, "OSD response: %s", value.c_str());
+    }
+    } else if (command == "FLD" && display_sensor_ != nullptr) {
     display_sensor_->publish_state(value);
   } else {
       const std::string unknown_frame = command + value;
