@@ -25,21 +25,6 @@ void OnkyoIscp::setup() {
   if (last_unknown_frame_sensor_ != nullptr) {
     last_unknown_frame_sensor_->publish_state("none");
   }
-  if (hdmi_audio_out_raw_sensor_ != nullptr) {
-  hdmi_audio_out_raw_sensor_->publish_state("unknown");
-  }
-
-  if (monitor_resolution_raw_sensor_ != nullptr) {
-    monitor_resolution_raw_sensor_->publish_state("unknown");
-  }
-
-  if (video_wide_mode_raw_sensor_ != nullptr) {
-    video_wide_mode_raw_sensor_->publish_state("unknown");
-  }
-
-  if (picture_mode_raw_sensor_ != nullptr) {
-    picture_mode_raw_sensor_->publish_state("unknown");
-  }
 
   if (audio_information_sensor_ != nullptr) {
     audio_information_sensor_->publish_state("unknown");
@@ -53,23 +38,19 @@ void OnkyoIscp::setup() {
   ESP_LOGI(TAG, "Onkyo ISCP UART component started");
   this->enqueue_command_("PWRQSTN");
 }
-
 void OnkyoIscp::dump_config() {
   ESP_LOGCONFIG(TAG, "Onkyo ISCP:");
   LOG_UPDATE_INTERVAL(this);
 }
-
 void OnkyoIscp::loop() {
   this->read_uart_();
   this->process_queue_();
   this->check_receiver_timeout_();
 }
-
 void OnkyoIscp::update() {
   ESP_LOGV(TAG, "Sending receiver heartbeat");
   this->enqueue_command_("PWRQSTN");
 }
-
 void OnkyoIscp::mark_receiver_online_() {
   last_valid_frame_ms_ = millis();
 
@@ -86,7 +67,6 @@ void OnkyoIscp::mark_receiver_online_() {
   }
   this->query_all();
 }
-
 void OnkyoIscp::check_receiver_timeout_() {
   if (!receiver_online_) {
     return;
@@ -107,7 +87,6 @@ void OnkyoIscp::check_receiver_timeout_() {
     connected_binary_sensor_->publish_state(false);
   }
 }
-
 void OnkyoIscp::send_command(const std::string& command) {
   if (command.empty()) return;
   std::string frame = command;
@@ -116,11 +95,9 @@ void OnkyoIscp::send_command(const std::string& command) {
   this->write_str(frame.c_str());
   ESP_LOGD(TAG, "TX: %s", frame.c_str());
 }
-
 void OnkyoIscp::enqueue_command_(const std::string& command) {
   command_queue_.push_back(command);
 }
-
 void OnkyoIscp::process_queue_() {
   if (command_queue_.empty()) return;
   const uint32_t now = millis();
@@ -129,7 +106,6 @@ void OnkyoIscp::process_queue_() {
   command_queue_.pop_front();
   last_command_ms_ = now;
 }
-
 void OnkyoIscp::query_all() {
   this->enqueue_command_("PWRQSTN");
   this->enqueue_command_("MVLQSTN");
@@ -152,30 +128,25 @@ void OnkyoIscp::query_all() {
 
   this->query_video_information();
 }
-
 void OnkyoIscp::query_tuner() {
   this->enqueue_command_("TUNQSTN");
   this->enqueue_command_("PRSQSTN");
 }
-
 void OnkyoIscp::set_audyssey(bool state) {
   this->send_command(state ? "ADY01" : "ADY00");
 
   this->enqueue_command_("ADYQSTN");
 }
-
 void OnkyoIscp::set_dynamic_eq(bool state) {
   this->send_command(state ? "ADQ01" : "ADQ00");
 
   this->enqueue_command_("ADQQSTN");
 }
-
 void OnkyoIscp::set_re_eq(bool state) {
   this->send_command(state ? "RAS01" : "RAS00");
 
   this->enqueue_command_("RASQSTN");
 }
-
 void OnkyoIscp::set_late_night(const std::string& mode) {
   const std::string code = late_night_name_to_code_(mode);
 
@@ -187,13 +158,11 @@ void OnkyoIscp::set_late_night(const std::string& mode) {
   this->send_command("LTN" + code);
   this->enqueue_command_("LTNQSTN");
 }
-
 void OnkyoIscp::set_music_optimizer(bool state) {
   this->send_command(state ? "MOT01" : "MOT00");
 
   this->enqueue_command_("MOTQSTN");
 }
-
 void OnkyoIscp::set_dynamic_volume(const std::string& mode) {
   const std::string code = dynamic_volume_name_to_code_(mode);
 
@@ -205,7 +174,6 @@ void OnkyoIscp::set_dynamic_volume(const std::string& mode) {
   this->send_command("ADV" + code);
   this->enqueue_command_("ADVQSTN");
 }
-
 void OnkyoIscp::set_dimmer(const std::string& mode) {
   const std::string code = dimmer_name_to_code_(mode);
 
@@ -217,7 +185,6 @@ void OnkyoIscp::set_dimmer(const std::string& mode) {
   this->send_command("DIM" + code);
   this->enqueue_command_("DIMQSTN");
 }
-
 void OnkyoIscp::set_sleep_timer(float minutes) {
   int rounded = static_cast<int>(std::lround(minutes));
 
@@ -237,7 +204,6 @@ void OnkyoIscp::set_sleep_timer(float minutes) {
 
   this->enqueue_command_("SLPQSTN");
 }
-
 void OnkyoIscp::set_fm_frequency(float frequency) {
   if (tuner_band_ != TunerBand::FM) {
     ESP_LOGW(TAG, "Cannot set FM frequency while FM input is not active");
@@ -257,7 +223,6 @@ void OnkyoIscp::set_fm_frequency(float frequency) {
   this->send_command(command);
   this->enqueue_command_("TUNQSTN");
 }
-
 void OnkyoIscp::set_am_frequency(float frequency) {
   if (tuner_band_ != TunerBand::AM) {
     ESP_LOGW(TAG, "Cannot set AM frequency while AM input is not active");
@@ -277,7 +242,6 @@ void OnkyoIscp::set_am_frequency(float frequency) {
   this->send_command(command);
   this->enqueue_command_("TUNQSTN");
 }
-
 void OnkyoIscp::set_tuner_preset(float preset) {
   if (tuner_band_ == TunerBand::UNKNOWN) {
     ESP_LOGW(TAG, "Cannot select preset while no tuner input is active");
@@ -307,7 +271,6 @@ void OnkyoIscp::set_tuner_preset(float preset) {
   this->enqueue_command_("PRSQSTN");
   this->enqueue_command_("TUNQSTN");
 }
-
 void OnkyoIscp::tuner_preset_up() {
   if (tuner_band_ == TunerBand::UNKNOWN) {
     ESP_LOGW(TAG, "Cannot select next preset while no tuner band is active");
@@ -318,7 +281,6 @@ void OnkyoIscp::tuner_preset_up() {
   this->enqueue_command_("PRSQSTN");
   this->enqueue_command_("TUNQSTN");
 }
-
 void OnkyoIscp::tuner_preset_down() {
   if (tuner_band_ == TunerBand::UNKNOWN) {
     ESP_LOGW(TAG, "Cannot select previous preset while no tuner band is active");
@@ -329,7 +291,6 @@ void OnkyoIscp::tuner_preset_down() {
   this->enqueue_command_("PRSQSTN");
   this->enqueue_command_("TUNQSTN");
 }
-
 void OnkyoIscp::process_tuner_frequency_(const std::string &value) {
   if (value.empty()) {
     ESP_LOGW(TAG, "Empty tuner frequency response");
@@ -392,7 +353,6 @@ void OnkyoIscp::process_tuner_frequency_(const std::string &value) {
       value.c_str()
   );
 }
-
 void OnkyoIscp::process_tuner_preset_(const std::string &value) {
   char *end = nullptr;
   const long preset = std::strtol(value.c_str(), &end, 16);
@@ -418,7 +378,6 @@ void OnkyoIscp::process_tuner_preset_(const std::string &value) {
     tuner_preset_number_->publish_state(static_cast<float>(preset));
   }
 }
-
 void OnkyoIscp::process_sleep_timer_(const std::string& value) {
   if (sleep_timer_number_ == nullptr) {
     return;
@@ -445,7 +404,6 @@ void OnkyoIscp::process_sleep_timer_(const std::string& value) {
 
   sleep_timer_number_->publish_state(static_cast<float>(minutes));
 }
-
 void OnkyoIscp::set_audio_selector(const std::string& selector) {
   const std::string code = audio_selector_name_to_code_(selector);
 
@@ -457,7 +415,6 @@ void OnkyoIscp::set_audio_selector(const std::string& selector) {
   this->send_command("SLA" + code);
   this->enqueue_command_("SLAQSTN");
 }
-
 void OnkyoIscp::set_speaker_layout(const std::string& layout) {
   const std::string code = speaker_layout_name_to_code_(layout);
 
@@ -469,299 +426,6 @@ void OnkyoIscp::set_speaker_layout(const std::string& layout) {
   this->send_command("SPL" + code);
   this->enqueue_command_("SPLQSTN");
 }
-
-std::string OnkyoIscp::dynamic_volume_code_to_name_(const std::string& code) {
-  if (code == "00") {
-    return "Off";
-  }
-
-  if (code == "01") {
-    return "Light";
-  }
-
-  if (code == "02") {
-    return "Medium";
-  }
-
-  if (code == "03") {
-    return "Heavy";
-  }
-
-  return {};
-}
-
-std::string OnkyoIscp::dynamic_volume_name_to_code_(const std::string& name) {
-  if (name == "Off") {
-    return "00";
-  }
-
-  if (name == "Light") {
-    return "01";
-  }
-
-  if (name == "Medium") {
-    return "02";
-  }
-
-  if (name == "Heavy") {
-    return "03";
-  }
-
-  return {};
-}
-
-std::string OnkyoIscp::audio_selector_code_to_name_(const std::string& code) {
-  if (code == "02") {
-    return "Analog";
-  }
-
-  if (code == "04") {
-    return "HDMI";
-  }
-
-  if (code == "05") {
-    return "Coax/Optical";
-  }
-
-  if (code == "07") {
-    return "ARC";
-  }
-
-  return {};
-}
-
-std::string OnkyoIscp::audio_selector_name_to_code_(const std::string& name) {
-  if (name == "Analog") {
-    return "02";
-  }
-
-  if (name == "HDMI") {
-    return "04";
-  }
-
-  if (name == "Coax/Optical") {
-    return "05";
-  }
-
-  if (name == "ARC") {
-    return "07";
-  }
-
-  return {};
-}
-
-std::string OnkyoIscp::speaker_layout_code_to_name_(const std::string& code) {
-  if (code == "SB") {
-    return "Surround Back";
-  }
-
-  if (code == "FH") {
-    return "Front High";
-  }
-
-  if (code == "FW") {
-    return "Front Wide";
-  }
-
-  return {};
-}
-
-std::string OnkyoIscp::speaker_layout_name_to_code_(const std::string& name) {
-  if (name == "Surround Back") {
-    return "SB";
-  }
-
-  if (name == "Front High") {
-    return "FH";
-  }
-
-  if (name == "Front Wide") {
-    return "FW";
-  }
-
-  return {};
-}
-
-std::string OnkyoIscp::tone_value_to_code_(float value) {
-  int rounded = static_cast<int>(std::lround(value / 2.0f)) * 2;
-  rounded = std::max(-10, std::min(10, rounded));
-  if (rounded == 0) {
-    return "00";
-  }
-  const char sign = rounded > 0 ? '+' : '-';
-  const int magnitude = std::abs(rounded);
-  char magnitude_character;
-  if (magnitude == 10) {
-    magnitude_character = 'A';
-  } else {
-    magnitude_character = static_cast<char>('0' + magnitude);
-  }
-  std::string result;
-  result.push_back(sign);
-  result.push_back(magnitude_character);
-  return result;
-}
-
-bool OnkyoIscp::tone_code_to_value_(const std::string& code, float& value) {
-  if (code == "00") {
-    value = 0.0f;
-    return true;
-  }
-  if (code.size() != 2) {
-    return false;
-  }
-  const char sign = code[0];
-  const char magnitude_character = code[1];
-  if (sign != '+' && sign != '-') {
-    return false;
-  }
-  int magnitude;
-  if (magnitude_character == 'A') {
-    magnitude = 10;
-  } else if (magnitude_character >= '0' && magnitude_character <= '9') {
-    magnitude = magnitude_character - '0';
-  } else {
-    return false;
-  }
-  if (magnitude < 0 || magnitude > 10 || magnitude % 2 != 0) {
-    return false;
-  }
-  value = static_cast<float>(sign == '-' ? -magnitude : magnitude);
-  return true;
-}
-
-std::string OnkyoIscp::late_night_code_to_name_(const std::string& code) {
-  if (code == "00") {
-    return "Off";
-  }
-
-  if (code == "01") {
-    return "Low";
-  }
-
-  if (code == "02") {
-    return "High";
-  }
-
-  if (code == "03") {
-    return "Auto";
-  }
-
-  return {};
-}
-
-std::string OnkyoIscp::late_night_name_to_code_(const std::string& name) {
-  if (name == "Off") {
-    return "00";
-  }
-
-  if (name == "Low") {
-    return "01";
-  }
-
-  if (name == "High") {
-    return "02";
-  }
-
-  if (name == "Auto") {
-    return "03";
-  }
-
-  return {};
-}
-
-std::string OnkyoIscp::level_value_to_code_(float value, int minimum,
-                                            int maximum) {
-  int rounded = static_cast<int>(std::lround(value));
-
-  rounded = std::max(minimum, std::min(maximum, rounded));
-
-  if (rounded == 0) {
-    return "00";
-  }
-
-  const char sign = rounded > 0 ? '+' : '-';
-  const int magnitude = std::abs(rounded);
-
-  char magnitude_character;
-
-  if (magnitude <= 9) {
-    magnitude_character = static_cast<char>('0' + magnitude);
-  } else {
-    magnitude_character = static_cast<char>('A' + magnitude - 10);
-  }
-
-  std::string result;
-  result.push_back(sign);
-  result.push_back(magnitude_character);
-
-  return result;
-}
-
-bool OnkyoIscp::level_code_to_value_(const std::string& code, float& value) {
-  if (code == "00") {
-    value = 0.0f;
-    return true;
-  }
-
-  if (code.size() != 2) {
-    return false;
-  }
-
-  const char sign = code[0];
-  const char magnitude_character = code[1];
-
-  if (sign != '+' && sign != '-') {
-    return false;
-  }
-
-  int magnitude;
-
-  if (magnitude_character >= '0' && magnitude_character <= '9') {
-    magnitude = magnitude_character - '0';
-  } else if (magnitude_character >= 'A' && magnitude_character <= 'F') {
-    magnitude = 10 + magnitude_character - 'A';
-  } else {
-    return false;
-  }
-
-  value = static_cast<float>(sign == '-' ? -magnitude : magnitude);
-
-  return true;
-}
-
-std::string OnkyoIscp::dimmer_code_to_name_(const std::string& code) {
-  if (code == "00") {
-    return "Bright";
-  }
-
-  if (code == "01") {
-    return "Dim";
-  }
-
-  if (code == "02") {
-    return "Dark";
-  }
-
-  return {};
-}
-
-std::string OnkyoIscp::dimmer_name_to_code_(const std::string& name) {
-  if (name == "Bright") {
-    return "00";
-  }
-
-  if (name == "Dim") {
-    return "01";
-  }
-
-  if (name == "Dark") {
-    return "02";
-  }
-
-  return {};
-}
-
 void OnkyoIscp::set_power(bool state) {
   this->send_command(state ? "PWR01" : "PWR00");
 }
@@ -780,14 +444,12 @@ void OnkyoIscp::set_subwoofer_level(float value) {
   this->send_command("SWL" + code);
   this->enqueue_command_("SWLQSTN");
 }
-
 void OnkyoIscp::set_center_level(float value) {
   const std::string code = level_value_to_code_(value, -12, 12);
 
   this->send_command("CTL" + code);
   this->enqueue_command_("CTLQSTN");
 }
-
 void OnkyoIscp::set_volume(float raw_value) {
   int value = std::max(0, std::min(100, static_cast<int>(raw_value + 0.5f)));
   char command[8];
@@ -838,7 +500,6 @@ void OnkyoIscp::process_front_tone_(const std::string& value) {
     ESP_LOGW(TAG, "Invalid TFR response: %s", value.c_str());
   }
 }
-
 void OnkyoIscp::process_subwoofer_level_(const std::string& value) {
   float level;
 
@@ -856,7 +517,6 @@ void OnkyoIscp::process_subwoofer_level_(const std::string& value) {
     subwoofer_level_number_->publish_state(level);
   }
 }
-
 void OnkyoIscp::process_center_level_(const std::string& value) {
   float level;
 
@@ -874,7 +534,6 @@ void OnkyoIscp::process_center_level_(const std::string& value) {
     center_level_number_->publish_state(level);
   }
 }
-
 void OnkyoIscp::set_input(const std::string& input) {
   const std::string code = input_name_to_code_(input);
   if (code.empty()) {
@@ -883,7 +542,6 @@ void OnkyoIscp::set_input(const std::string& input) {
   }
   this->send_command("SLI" + code);
 }
-
 void OnkyoIscp::set_listening_mode(const std::string& mode) {
   const std::string code = listening_mode_name_to_code_(mode);
   if (code.empty()) {
@@ -892,7 +550,6 @@ void OnkyoIscp::set_listening_mode(const std::string& mode) {
   }
   this->send_command("LMD" + code);
 }
-
 void OnkyoIscp::store_current_preset() {
   if (tuner_band_ == TunerBand::UNKNOWN) {
     ESP_LOGW(TAG, "Cannot store preset while no tuner input is active");
@@ -922,7 +579,6 @@ void OnkyoIscp::store_current_preset() {
   this->enqueue_command_("PRSQSTN");
   this->enqueue_command_("TUNQSTN");
 }
-
 void OnkyoIscp::show_rds_radio_text() {
   if (tuner_band_ != TunerBand::FM) {
     ESP_LOGW(TAG, "RDS Radio Text is only available on FM");
@@ -931,7 +587,6 @@ void OnkyoIscp::show_rds_radio_text() {
 
   this->send_command("RDS00");
 }
-
 void OnkyoIscp::show_rds_pty() {
   if (tuner_band_ != TunerBand::FM) {
     ESP_LOGW(TAG, "RDS PTY information is only available on FM");
@@ -940,7 +595,6 @@ void OnkyoIscp::show_rds_pty() {
 
   this->send_command("RDS01");
 }
-
 void OnkyoIscp::show_rds_tp() {
   if (tuner_band_ != TunerBand::FM) {
     ESP_LOGW(TAG, "RDS TP information is only available on FM");
@@ -949,7 +603,6 @@ void OnkyoIscp::show_rds_tp() {
 
   this->send_command("RDS02");
 }
-
 void OnkyoIscp::show_next_rds_information() {
   if (tuner_band_ != TunerBand::FM) {
     ESP_LOGW(TAG, "RDS information is only available on FM");
@@ -958,7 +611,6 @@ void OnkyoIscp::show_next_rds_information() {
 
   this->send_command("RDSUP");
 }
-
 void OnkyoIscp::read_uart_() {
   while (this->available()) {
     uint8_t value;
@@ -984,7 +636,6 @@ void OnkyoIscp::read_uart_() {
     rx_buffer_.push_back(static_cast<char>(value));
   }
 }
-
 bool OnkyoIscp::is_valid_ascii_frame_(const std::string& frame) {
   if (frame.empty()) {
     return false;
@@ -997,55 +648,6 @@ bool OnkyoIscp::is_valid_ascii_frame_(const std::string& frame) {
 
   return true;
 }
-
-std::string OnkyoIscp::normalize_frame_(std::string frame) {
-  const size_t start = frame.rfind("!1");
-  if (start == std::string::npos) {
-    return {};
-  }
-  frame.erase(0, start + 2);
-  return frame;
-}
-
-std::string OnkyoIscp::pty_code_to_name_(const std::string &code) {
-  static const char *const names[] {
-      "None", "News", "Affairs", "Info", "Sport", "Educate", "Drama",
-      "Culture", "Science", "Varied", "Pop M", "Rock M", "Easy M",
-      "Light M", "Classics", "Other M", "Weather", "Finance", "Children",
-      "Social", "Religion", "Phone In", "Travel", "Leisure", "Jazz",
-      "Country", "Nation M", "Oldies", "Folk M", "Document", "TEST", "Alarm",
-  };
-
-  char *end = nullptr;
-  const long value = std::strtol(code.c_str(), &end, 16);
-
-  if (end == code.c_str() || *end != '\0' || value < 0 || value > 31) {
-    return {};
-  }
-
-  return names[value];
-}
-
-std::string OnkyoIscp::pty_name_to_code_(const std::string &name) {
-  static const char *const names[] = {
-      "None", "News", "Affairs", "Info", "Sport", "Educate", "Drama",
-      "Culture", "Science", "VVaried", "Pop M", "Rock M", "Easy M",
-      "Light M", "Classics", "Other M", "Weather", "Finance", "Children",
-      "Social", "Religion", "Phone In", "Travel", "Leisure", "Jazz",
-      "Country", "Nation M", "Oldies", "Folk M", "Document", "TEST", "Alarm",
-  };
-
-  for (int i = 0; i < 32; i++) {
-    if (name == names[i]) {
-      char code[3];
-      std::snprintf(code, sizeof(code), "%02X", i);
-      return code;
-    }
-  }
-
-  return {};
-}
-
 void OnkyoIscp::set_pty(const std::string &pty) {
   if (tuner_band_ != TunerBand::FM) {
     ESP_LOGW(TAG, "PTY selection is only available on FM");
@@ -1061,7 +663,6 @@ void OnkyoIscp::set_pty(const std::string &pty) {
 
   this->send_command("PTS" + code);
 }
-
 void OnkyoIscp::start_pty_scan() {
   if (tuner_band_ != TunerBand::FM) {
     ESP_LOGW(TAG, "PTY scan is only available on FM");
@@ -1070,7 +671,6 @@ void OnkyoIscp::start_pty_scan() {
 
   this->send_command("PTSSCAN");
 }
-
 void OnkyoIscp::start_tp_scan() {
   if (tuner_band_ != TunerBand::FM) {
     ESP_LOGW(TAG, "TP scan is only available on FM");
@@ -1079,7 +679,6 @@ void OnkyoIscp::start_tp_scan() {
 
   this->send_command("TPSSCAN");
 }
-
 void OnkyoIscp::process_frame_(std::string frame) {
   if (!is_valid_ascii_frame_(frame)) {
     ESP_LOGW(TAG, "Discarding non-ASCII UART frame (%u bytes)",
@@ -1109,7 +708,6 @@ void OnkyoIscp::process_frame_(std::string frame) {
   }
   this->process_command_(command, frame.substr(3));
 }
-
 void OnkyoIscp::query_video_information() {
   this->enqueue_command_("HAOQSTN");
   this->enqueue_command_("RESQSTN");
@@ -1118,9 +716,52 @@ void OnkyoIscp::query_video_information() {
   this->enqueue_command_("IFAQSTN");
   this->enqueue_command_("IFVQSTN");
 }
+void OnkyoIscp::set_hdmi_audio_out(const std::string &mode) {
+  const std::string code = hdmi_audio_out_name_to_code_(mode);
 
-void OnkyoIscp::process_command_(const std::string& command,
-                                 const std::string& value) {
+  if (code.empty()) {
+    ESP_LOGW(TAG, "Unknown HDMI Audio Out option: %s", mode.c_str());
+    return;
+  }
+
+  this->enqueue_command_("HAO" + code);
+  this->enqueue_command_("HAOQSTN");
+}
+void OnkyoIscp::set_monitor_resolution(const std::string &resolution) {
+  const std::string code = monitor_resolution_name_to_code_(resolution);
+
+  if (code.empty()) {
+    ESP_LOGW(TAG, "Unknown monitor resolution option: %s", resolution.c_str());
+    return;
+  }
+
+  this->enqueue_command_("RES" + code);
+  this->enqueue_command_("RESQSTN");
+}
+void OnkyoIscp::set_video_wide_mode(const std::string &mode) {
+  const std::string code = video_wide_mode_name_to_code_(mode);
+
+  if (code.empty()) {
+    ESP_LOGW(TAG, "Unknown Video Wide Mode option: %s", mode.c_str());
+    return;
+  }
+
+  this->enqueue_command_("VWM" + code);
+  this->enqueue_command_("VWMQSTN");
+}
+void OnkyoIscp::set_picture_mode(const std::string &mode) {
+  const std::string code = picture_mode_name_to_code_(mode);
+
+  if (code.empty()) {
+    ESP_LOGW(TAG, "Unknown Picture Mode option: %s", mode.c_str());
+    return;
+  }
+
+  this->enqueue_command_("VPM" + code);
+  this->enqueue_command_("VPMQSTN");
+}
+// Dispatcher ##########################################################################################
+void OnkyoIscp::process_command_(const std::string& command, const std::string& value) {
   if (command == "PWR" && power_switch_ != nullptr) {
     if (value == "01")
       power_switch_->publish_state(true);
@@ -1252,99 +893,247 @@ void OnkyoIscp::process_command_(const std::string& command,
     } else {
       ESP_LOGW(TAG, "Unknown speaker layout state: %s", value.c_str());
     }
-} else if (command == "TUN" || command == "TUZ") {
-  this->process_tuner_frequency_(value);
+  } else if (command == "TUN" || command == "TUZ") {
+    this->process_tuner_frequency_(value);
 
-} else if (command == "PRS" || command == "PRZ") {
-  this->process_tuner_preset_(value);
+  } else if (command == "PRS" || command == "PRZ") {
+    this->process_tuner_preset_(value);
 
-} else if (command == "RDS") {
-  if (value == "00") {
-    ESP_LOGD(TAG, "RDS display mode: Radio Text");
-  } else if (value == "01") {
-    ESP_LOGD(TAG, "RDS display mode: PTY");
-  } else if (value == "02") {
-    ESP_LOGD(TAG, "RDS display mode: TP");
-  } else if (value == "UP") {
-    ESP_LOGD(TAG, "RDS display mode advanced");
-  } else {
-    ESP_LOGW(TAG, "Unknown RDS response: %s", value.c_str());
-  }
+  } else if (command == "RDS") {
+    if (value == "00") {
+      ESP_LOGD(TAG, "RDS display mode: Radio Text");
+    } else if (value == "01") {
+      ESP_LOGD(TAG, "RDS display mode: PTY");
+    } else if (value == "02") {
+      ESP_LOGD(TAG, "RDS display mode: TP");
+    } else if (value == "UP") {
+      ESP_LOGD(TAG, "RDS display mode advanced");
+    } else {
+      ESP_LOGW(TAG, "Unknown RDS response: %s", value.c_str());
+    }
 
-} else if (command == "PTS") {
-  if (value == "N/A") {
-    ESP_LOGD(TAG, "PTY scan is not available for the current station");
-  } else if (value == "SCAN") {
-    ESP_LOGD(TAG, "PTY scan started");
-  } else {
-    const std::string name = pty_code_to_name_(value);
+  } else if (command == "PTS") {
+    if (value == "N/A") {
+      ESP_LOGD(TAG, "PTY scan is not available for the current station");
+    } else if (value == "SCAN") {
+      ESP_LOGD(TAG, "PTY scan started");
+    } else {
+      const std::string name = pty_code_to_name_(value);
+
+      if (!name.empty()) {
+        if (pty_select_ != nullptr) {
+          pty_select_->publish_state(name);
+        }
+
+        ESP_LOGD(TAG, "PTY state: %s", name.c_str());
+      } else {
+        ESP_LOGW(TAG, "Unknown PTY response: %s", value.c_str());
+      }
+    }
+
+  } else if (command == "TPS") {
+    if (value == "N/A") {
+      ESP_LOGD(TAG, "TP scan is not available for the current station");
+    } else if (value == "SCAN") {
+      ESP_LOGD(TAG, "TP scan started");
+    } else {
+      ESP_LOGD(TAG, "TP scan response: %s", value.c_str());
+    }
+  } else if (command == "HAO") {
+    const std::string name = hdmi_audio_out_code_to_name_(value);
 
     if (!name.empty()) {
-      if (pty_select_ != nullptr) {
-        pty_select_->publish_state(name);
+      if (hdmi_audio_out_select_ != nullptr) {
+        hdmi_audio_out_select_->publish_state(name);
       }
-
-      ESP_LOGD(TAG, "PTY state: %s", name.c_str());
     } else {
-      ESP_LOGW(TAG, "Unknown PTY response: %s", value.c_str());
+      ESP_LOGW(TAG, "Unknown HDMI Audio Out state: %s", value.c_str());
     }
-  }
 
-} else if (command == "TPS") {
-  if (value == "N/A") {
-    ESP_LOGD(TAG, "TP scan is not available for the current station");
-  } else if (value == "SCAN") {
-    ESP_LOGD(TAG, "TP scan started");
+  } else if (command == "RES") {
+    const std::string name = monitor_resolution_code_to_name_(value);
+
+    if (!name.empty()) {
+      if (monitor_resolution_select_ != nullptr) {
+        monitor_resolution_select_->publish_state(name);
+      }
+    } else {
+      ESP_LOGW(TAG, "Unknown monitor resolution state: %s", value.c_str());
+    }
+
+  } else if (command == "VWM") {
+    const std::string name = video_wide_mode_code_to_name_(value);
+
+    if (!name.empty()) {
+      if (video_wide_mode_select_ != nullptr) {
+        video_wide_mode_select_->publish_state(name);
+      }
+    } else {
+      ESP_LOGW(TAG, "Unknown Video Wide Mode state: %s", value.c_str());
+    }
+
+  } else if (command == "VPM") {
+    const std::string name = picture_mode_code_to_name_(value);
+
+    if (!name.empty()) {
+      if (picture_mode_select_ != nullptr) {
+        picture_mode_select_->publish_state(name);
+      }
+    } else {
+      ESP_LOGW(TAG, "Unknown Picture Mode state: %s", value.c_str());
+    }
+  } else if (command == "IFA") {
+    if (value.empty()) {
+      ESP_LOGW(TAG, "Empty audio information response");
+    } else if (audio_information_sensor_ != nullptr) {
+      audio_information_sensor_->publish_state(value);
+    }
+
+  } else if (command == "IFV") {
+    if (value.empty()) {
+      ESP_LOGW(TAG, "Empty video information response");
+    } else if (video_information_sensor_ != nullptr) {
+      video_information_sensor_->publish_state(value);
+    }
+
+  } else if (command == "FLD" && display_sensor_ != nullptr) {
+    display_sensor_->publish_state(value);
+
+
   } else {
-    ESP_LOGD(TAG, "TP scan response: %s", value.c_str());
-  }
-} else if (command == "HAO") {
-  if (hdmi_audio_out_raw_sensor_ != nullptr) {
-    hdmi_audio_out_raw_sensor_->publish_state(value);
-  }
-
-} else if (command == "RES") {
-  if (monitor_resolution_raw_sensor_ != nullptr) {
-    monitor_resolution_raw_sensor_->publish_state(value);
-  }
-
-} else if (command == "VWM") {
-  if (video_wide_mode_raw_sensor_ != nullptr) {
-    video_wide_mode_raw_sensor_->publish_state(value);
-  }
-
-} else if (command == "VPM") {
-  if (picture_mode_raw_sensor_ != nullptr) {
-    picture_mode_raw_sensor_->publish_state(value);
-  }
-
-} else if (command == "IFA") {
-  if (value.empty()) {
-    ESP_LOGW(TAG, "Empty audio information response");
-  } else if (audio_information_sensor_ != nullptr) {
-    audio_information_sensor_->publish_state(value);
-  }
-
-} else if (command == "IFV") {
-  if (value.empty()) {
-    ESP_LOGW(TAG, "Empty video information response");
-  } else if (video_information_sensor_ != nullptr) {
-    video_information_sensor_->publish_state(value);
-  }
-
-} else if (command == "FLD" && display_sensor_ != nullptr) {
-  display_sensor_->publish_state(value);
-
-
-} else {
-    const std::string unknown_frame = command + value;
-    ESP_LOGD(TAG, "Unhandled ISCP frame: %s", unknown_frame.c_str());
-    if (last_unknown_frame_sensor_ != nullptr) {
-      last_unknown_frame_sensor_->publish_state(unknown_frame);
-    }
+      const std::string unknown_frame = command + value;
+      ESP_LOGD(TAG, "Unhandled ISCP frame: %s", unknown_frame.c_str());
+      if (last_unknown_frame_sensor_ != nullptr) {
+        last_unknown_frame_sensor_->publish_state(unknown_frame);
+      }
   }
 }
+// Mappings ###############################################################################################################################
+std::string OnkyoIscp::dynamic_volume_code_to_name_(const std::string& code) {
+  if (code == "00") {
+    return "Off";
+  }
 
+  if (code == "01") {
+    return "Light";
+  }
+
+  if (code == "02") {
+    return "Medium";
+  }
+
+  if (code == "03") {
+    return "Heavy";
+  }
+
+  return {};
+}
+std::string OnkyoIscp::dynamic_volume_name_to_code_(const std::string& name) {
+  if (name == "Off") {
+    return "00";
+  }
+
+  if (name == "Light") {
+    return "01";
+  }
+
+  if (name == "Medium") {
+    return "02";
+  }
+
+  if (name == "Heavy") {
+    return "03";
+  }
+
+  return {};
+}
+std::string OnkyoIscp::audio_selector_code_to_name_(const std::string& code) {
+  if (code == "02") {
+    return "Analog";
+  }
+
+  if (code == "04") {
+    return "HDMI";
+  }
+
+  if (code == "05") {
+    return "Coax/Optical";
+  }
+
+  if (code == "07") {
+    return "ARC";
+  }
+
+  return {};
+}
+std::string OnkyoIscp::audio_selector_name_to_code_(const std::string& name) {
+  if (name == "Analog") {
+    return "02";
+  }
+
+  if (name == "HDMI") {
+    return "04";
+  }
+
+  if (name == "Coax/Optical") {
+    return "05";
+  }
+
+  if (name == "ARC") {
+    return "07";
+  }
+
+  return {};
+}
+std::string OnkyoIscp::speaker_layout_code_to_name_(const std::string& code) {
+  if (code == "SB") {
+    return "Surround Back";
+  }
+
+  if (code == "FH") {
+    return "Front High";
+  }
+
+  if (code == "FW") {
+    return "Front Wide";
+  }
+
+  return {};
+}
+std::string OnkyoIscp::speaker_layout_name_to_code_(const std::string& name) {
+  if (name == "Surround Back") {
+    return "SB";
+  }
+
+  if (name == "Front High") {
+    return "FH";
+  }
+
+  if (name == "Front Wide") {
+    return "FW";
+  }
+
+  return {};
+}
+std::string OnkyoIscp::tone_value_to_code_(float value) {
+  int rounded = static_cast<int>(std::lround(value / 2.0f)) * 2;
+  rounded = std::max(-10, std::min(10, rounded));
+  if (rounded == 0) {
+    return "00";
+  }
+  const char sign = rounded > 0 ? '+' : '-';
+  const int magnitude = std::abs(rounded);
+  char magnitude_character;
+  if (magnitude == 10) {
+    magnitude_character = 'A';
+  } else {
+    magnitude_character = static_cast<char>('0' + magnitude);
+  }
+  std::string result;
+  result.push_back(sign);
+  result.push_back(magnitude_character);
+  return result;
+}
 std::string OnkyoIscp::input_code_to_name_(const std::string& code) {
   if (code == "00") return "VCR/DVR";
   if (code == "01") return "CBL/SAT";
@@ -1366,7 +1155,6 @@ std::string OnkyoIscp::input_code_to_name_(const std::string& code) {
   if (code == "57") return "HDMI 7";
   return {};
 }
-
 std::string OnkyoIscp::input_name_to_code_(const std::string& name) {
   static const char* const options[][2] = {
       {"VCR/DVR", "00"}, {"CBL/SAT", "01"},  {"GAME/TV", "02"},
@@ -1380,7 +1168,6 @@ std::string OnkyoIscp::input_name_to_code_(const std::string& name) {
     if (name == option[0]) return option[1];
   return {};
 }
-
 std::string OnkyoIscp::listening_mode_code_to_name_(const std::string& code) {
   if (code == "00") return "Stereo";
   if (code == "01") return "Direct";
@@ -1428,7 +1215,6 @@ std::string OnkyoIscp::listening_mode_code_to_name_(const std::string& code) {
   if (code == "A4") return "Neo:6 Music + Audyssey DSX";
   return {};
 }
-
 std::string OnkyoIscp::listening_mode_name_to_code_(const std::string& name) {
   static const char* const options[][2] = {
       {"Stereo", "00"},
@@ -1480,7 +1266,476 @@ std::string OnkyoIscp::listening_mode_name_to_code_(const std::string& name) {
     if (name == option[0]) return option[1];
   return {};
 }
+std::string OnkyoIscp::normalize_frame_(std::string frame) {
+  const size_t start = frame.rfind("!1");
+  if (start == std::string::npos) {
+    return {};
+  }
+  frame.erase(0, start + 2);
+  return frame;
+}
+std::string OnkyoIscp::pty_code_to_name_(const std::string &code) {
+  static const char *const names[] {
+      "None", "News", "Affairs", "Info", "Sport", "Educate", "Drama",
+      "Culture", "Science", "Varied", "Pop M", "Rock M", "Easy M",
+      "Light M", "Classics", "Other M", "Weather", "Finance", "Children",
+      "Social", "Religion", "Phone In", "Travel", "Leisure", "Jazz",
+      "Country", "Nation M", "Oldies", "Folk M", "Document", "TEST", "Alarm",
+  };
 
+  char *end = nullptr;
+  const long value = std::strtol(code.c_str(), &end, 16);
+
+  if (end == code.c_str() || *end != '\0' || value < 0 || value > 31) {
+    return {};
+  }
+
+  return names[value];
+}
+std::string OnkyoIscp::pty_name_to_code_(const std::string &name) {
+  static const char *const names[] = {
+      "None", "News", "Affairs", "Info", "Sport", "Educate", "Drama",
+      "Culture", "Science", "VVaried", "Pop M", "Rock M", "Easy M",
+      "Light M", "Classics", "Other M", "Weather", "Finance", "Children",
+      "Social", "Religion", "Phone In", "Travel", "Leisure", "Jazz",
+      "Country", "Nation M", "Oldies", "Folk M", "Document", "TEST", "Alarm",
+  };
+
+  for (int i = 0; i < 32; i++) {
+    if (name == names[i]) {
+      char code[3];
+      std::snprintf(code, sizeof(code), "%02X", i);
+      return code;
+    }
+  }
+
+  return {};
+}
+bool OnkyoIscp::tone_code_to_value_(const std::string& code, float& value) {
+  if (code == "00") {
+    value = 0.0f;
+    return true;
+  }
+  if (code.size() != 2) {
+    return false;
+  }
+  const char sign = code[0];
+  const char magnitude_character = code[1];
+  if (sign != '+' && sign != '-') {
+    return false;
+  }
+  int magnitude;
+  if (magnitude_character == 'A') {
+    magnitude = 10;
+  } else if (magnitude_character >= '0' && magnitude_character <= '9') {
+    magnitude = magnitude_character - '0';
+  } else {
+    return false;
+  }
+  if (magnitude < 0 || magnitude > 10 || magnitude % 2 != 0) {
+    return false;
+  }
+  value = static_cast<float>(sign == '-' ? -magnitude : magnitude);
+  return true;
+}
+std::string OnkyoIscp::late_night_code_to_name_(const std::string& code) {
+  if (code == "00") {
+    return "Off";
+  }
+
+  if (code == "01") {
+    return "Low";
+  }
+
+  if (code == "02") {
+    return "High";
+  }
+
+  if (code == "03") {
+    return "Auto";
+  }
+
+  return {};
+}
+std::string OnkyoIscp::late_night_name_to_code_(const std::string& name) {
+  if (name == "Off") {
+    return "00";
+  }
+
+  if (name == "Low") {
+    return "01";
+  }
+
+  if (name == "High") {
+    return "02";
+  }
+
+  if (name == "Auto") {
+    return "03";
+  }
+
+  return {};
+}
+std::string OnkyoIscp::level_value_to_code_(float value, int minimum, int maximum) {
+  int rounded = static_cast<int>(std::lround(value));
+
+  rounded = std::max(minimum, std::min(maximum, rounded));
+
+  if (rounded == 0) {
+    return "00";
+  }
+
+  const char sign = rounded > 0 ? '+' : '-';
+  const int magnitude = std::abs(rounded);
+
+  char magnitude_character;
+
+  if (magnitude <= 9) {
+    magnitude_character = static_cast<char>('0' + magnitude);
+  } else {
+    magnitude_character = static_cast<char>('A' + magnitude - 10);
+  }
+
+  std::string result;
+  result.push_back(sign);
+  result.push_back(magnitude_character);
+
+  return result;
+}
+bool OnkyoIscp::level_code_to_value_(const std::string& code, float& value) {
+  if (code == "00") {
+    value = 0.0f;
+    return true;
+  }
+
+  if (code.size() != 2) {
+    return false;
+  }
+
+  const char sign = code[0];
+  const char magnitude_character = code[1];
+
+  if (sign != '+' && sign != '-') {
+    return false;
+  }
+
+  int magnitude;
+
+  if (magnitude_character >= '0' && magnitude_character <= '9') {
+    magnitude = magnitude_character - '0';
+  } else if (magnitude_character >= 'A' && magnitude_character <= 'F') {
+    magnitude = 10 + magnitude_character - 'A';
+  } else {
+    return false;
+  }
+
+  value = static_cast<float>(sign == '-' ? -magnitude : magnitude);
+
+  return true;
+}
+std::string OnkyoIscp::dimmer_code_to_name_(const std::string& code) {
+  if (code == "00") {
+    return "Bright";
+  }
+
+  if (code == "01") {
+    return "Dim";
+  }
+
+  if (code == "02") {
+    return "Dark";
+  }
+
+  return {};
+}
+std::string OnkyoIscp::dimmer_name_to_code_(const std::string& name) {
+  if (name == "Bright") {
+    return "00";
+  }
+
+  if (name == "Dim") {
+    return "01";
+  }
+
+  if (name == "Dark") {
+    return "02";
+  }
+
+  return {};
+}
+std::string OnkyoIscp::hdmi_audio_out_code_to_name_(const std::string &code) {
+  if (code == "00") return "Off";
+  if (code == "01") return "On";
+  if (code == "02") return "Auto";
+  return {};
+}
+std::string OnkyoIscp::hdmi_audio_out_name_to_code_(const std::string &name) {
+  if (name == "Off") return "00";
+  if (name == "On") return "01";
+  if (name == "Auto") return "02";
+  return {};
+}
+std::string OnkyoIscp::monitor_resolution_code_to_name_(const std::string &code) {
+  if (code == "00") return "Through";
+  if (code == "01") return "Auto";
+  if (code == "02") return "480p";
+  if (code == "03") return "720p";
+  if (code == "04") return "1080i";
+  if (code == "05") return "1080p";
+  return {};
+}
+std::string OnkyoIscp::monitor_resolution_name_to_code_(const std::string &name) {
+  if (name == "Through") return "00";
+  if (name == "Auto") return "01";
+  if (name == "480p") return "02";
+  if (name == "720p") return "03";
+  if (name == "1080i") return "04";
+  if (name == "1080p") return "05";
+  return {};
+}
+std::string OnkyoIscp::video_wide_mode_code_to_name_(const std::string &code) {
+  if (code == "00") return "Auto";
+  if (code == "01") return "4:3";
+  if (code == "02") return "Full";
+  if (code == "03") return "Zoom";
+  if (code == "04") return "Wide Zoom";
+  return {};
+}
+std::string OnkyoIscp::video_wide_mode_name_to_code_(const std::string &name) {
+  if (name == "Auto") return "00";
+  if (name == "4:3") return "01";
+  if (name == "Full") return "02";
+  if (name == "Zoom") return "03";
+  if (name == "Wide Zoom") return "04";
+  return {};
+}
+std::string OnkyoIscp::picture_mode_code_to_name_(const std::string &code) {
+  if (code == "00") return "Through";
+  if (code == "01") return "Custom";
+  if (code == "02") return "Cinema";
+  if (code == "03") return "Game";
+  return {};
+}
+std::string OnkyoIscp::picture_mode_name_to_code_(const std::string &name) {
+  if (name == "Through") return "00";
+  if (name == "Custom") return "01";
+  if (name == "Cinema") return "02";
+  if (name == "Game") return "03";
+  return {};
+}
+bool OnkyoIscp::tone_code_to_value_(const std::string& code, float& value) {
+  if (code == "00") {
+    value = 0.0f;
+    return true;
+  }
+  if (code.size() != 2) {
+    return false;
+  }
+  const char sign = code[0];
+  const char magnitude_character = code[1];
+  if (sign != '+' && sign != '-') {
+    return false;
+  }
+  int magnitude;
+  if (magnitude_character == 'A') {
+    magnitude = 10;
+  } else if (magnitude_character >= '0' && magnitude_character <= '9') {
+    magnitude = magnitude_character - '0';
+  } else {
+    return false;
+  }
+  if (magnitude < 0 || magnitude > 10 || magnitude % 2 != 0) {
+    return false;
+  }
+  value = static_cast<float>(sign == '-' ? -magnitude : magnitude);
+  return true;
+}
+std::string OnkyoIscp::late_night_code_to_name_(const std::string& code) {
+  if (code == "00") {
+    return "Off";
+  }
+
+  if (code == "01") {
+    return "Low";
+  }
+
+  if (code == "02") {
+    return "High";
+  }
+
+  if (code == "03") {
+    return "Auto";
+  }
+
+  return {};
+}
+std::string OnkyoIscp::late_night_name_to_code_(const std::string& name) {
+  if (name == "Off") {
+    return "00";
+  }
+
+  if (name == "Low") {
+    return "01";
+  }
+
+  if (name == "High") {
+    return "02";
+  }
+
+  if (name == "Auto") {
+    return "03";
+  }
+
+  return {};
+}
+std::string OnkyoIscp::level_value_to_code_(float value, int minimum, int maximum) {
+  int rounded = static_cast<int>(std::lround(value));
+
+  rounded = std::max(minimum, std::min(maximum, rounded));
+
+  if (rounded == 0) {
+    return "00";
+  }
+
+  const char sign = rounded > 0 ? '+' : '-';
+  const int magnitude = std::abs(rounded);
+
+  char magnitude_character;
+
+  if (magnitude <= 9) {
+    magnitude_character = static_cast<char>('0' + magnitude);
+  } else {
+    magnitude_character = static_cast<char>('A' + magnitude - 10);
+  }
+
+  std::string result;
+  result.push_back(sign);
+  result.push_back(magnitude_character);
+
+  return result;
+}
+bool OnkyoIscp::level_code_to_value_(const std::string& code, float& value) {
+  if (code == "00") {
+    value = 0.0f;
+    return true;
+  }
+
+  if (code.size() != 2) {
+    return false;
+  }
+
+  const char sign = code[0];
+  const char magnitude_character = code[1];
+
+  if (sign != '+' && sign != '-') {
+    return false;
+  }
+
+  int magnitude;
+
+  if (magnitude_character >= '0' && magnitude_character <= '9') {
+    magnitude = magnitude_character - '0';
+  } else if (magnitude_character >= 'A' && magnitude_character <= 'F') {
+    magnitude = 10 + magnitude_character - 'A';
+  } else {
+    return false;
+  }
+
+  value = static_cast<float>(sign == '-' ? -magnitude : magnitude);
+
+  return true;
+}
+std::string OnkyoIscp::dimmer_code_to_name_(const std::string& code) {
+  if (code == "00") {
+    return "Bright";
+  }
+
+  if (code == "01") {
+    return "Dim";
+  }
+
+  if (code == "02") {
+    return "Dark";
+  }
+
+  return {};
+}
+std::string OnkyoIscp::dimmer_name_to_code_(const std::string& name) {
+  if (name == "Bright") {
+    return "00";
+  }
+
+  if (name == "Dim") {
+    return "01";
+  }
+
+  if (name == "Dark") {
+    return "02";
+  }
+
+  return {};
+}
+std::string OnkyoIscp::hdmi_audio_out_code_to_name_(const std::string &code) {
+  if (code == "00") return "Off";
+  if (code == "01") return "On";
+  if (code == "02") return "Auto";
+  return {};
+}
+std::string OnkyoIscp::hdmi_audio_out_name_to_code_(const std::string &name) {
+  if (name == "Off") return "00";
+  if (name == "On") return "01";
+  if (name == "Auto") return "02";
+  return {};
+}
+std::string OnkyoIscp::monitor_resolution_code_to_name_(const std::string &code) {
+  if (code == "00") return "Through";
+  if (code == "01") return "Auto";
+  if (code == "02") return "480p";
+  if (code == "03") return "720p";
+  if (code == "04") return "1080i";
+  if (code == "05") return "1080p";
+  return {};
+}
+std::string OnkyoIscp::monitor_resolution_name_to_code_(const std::string &name) {
+  if (name == "Through") return "00";
+  if (name == "Auto") return "01";
+  if (name == "480p") return "02";
+  if (name == "720p") return "03";
+  if (name == "1080i") return "04";
+  if (name == "1080p") return "05";
+  return {};
+}
+std::string OnkyoIscp::video_wide_mode_code_to_name_(const std::string &code) {
+  if (code == "00") return "Auto";
+  if (code == "01") return "4:3";
+  if (code == "02") return "Full";
+  if (code == "03") return "Zoom";
+  if (code == "04") return "Wide Zoom";
+  return {};
+}
+std::string OnkyoIscp::video_wide_mode_name_to_code_(const std::string &name) {
+  if (name == "Auto") return "00";
+  if (name == "4:3") return "01";
+  if (name == "Full") return "02";
+  if (name == "Zoom") return "03";
+  if (name == "Wide Zoom") return "04";
+  return {};
+}
+std::string OnkyoIscp::picture_mode_code_to_name_(const std::string &code) {
+  if (code == "00") return "Through";
+  if (code == "01") return "Custom";
+  if (code == "02") return "Cinema";
+  if (code == "03") return "Game";
+  return {};
+}
+std::string OnkyoIscp::picture_mode_name_to_code_(const std::string &name) {
+  if (name == "Through") return "00";
+  if (name == "Custom") return "01";
+  if (name == "Cinema") return "02";
+  if (name == "Game") return "03";
+  return {};
+}
+// Control classes  ###############################################################################################################################
 void OnkyoPowerSwitch::write_state(bool state) {
   if (parent_) parent_->set_power(state);
 }
@@ -1580,55 +1835,46 @@ void OnkyoFmFrequencyNumber::control(float value) {
     parent_->set_fm_frequency(value);
   }
 }
-
 void OnkyoAmFrequencyNumber::control(float value) {
   if (parent_ != nullptr) {
     parent_->set_am_frequency(value);
   }
 }
-
 void OnkyoTunerPresetNumber::control(float value) {
   if (parent_ != nullptr) {
     parent_->set_tuner_preset(value);
   }
 }
-
 void OnkyoPresetUpButton::press_action() {
   if (parent_ != nullptr) {
     parent_->tuner_preset_up();
   }
 }
-
 void OnkyoPresetDownButton::press_action() {
   if (parent_ != nullptr) {
     parent_->tuner_preset_down();
   }
 }
-
 void OnkyoPresetStoreButton::press_action() {
   if (parent_ != nullptr) {
     parent_->store_current_preset();
   }
 }
-
 void OnkyoRdsRadioTextButton::press_action() {
   if (parent_ != nullptr) {
     parent_->show_rds_radio_text();
   }
 }
-
 void OnkyoRdsPtyButton::press_action() {
   if (parent_ != nullptr) {
     parent_->show_rds_pty();
   }
 }
-
 void OnkyoRdsTpButton::press_action() {
   if (parent_ != nullptr) {
     parent_->show_rds_tp();
   }
 }
-
 void OnkyoRdsNextButton::press_action() {
   if (parent_ != nullptr) {
     parent_->show_next_rds_information();
@@ -1639,16 +1885,34 @@ void OnkyoPtySelect::control(const std::string &value) {
     parent_->set_pty(value);
   }
 }
-
 void OnkyoPtyScanButton::press_action() {
   if (parent_ != nullptr) {
     parent_->start_pty_scan();
   }
 }
-
 void OnkyoTpScanButton::press_action() {
   if (parent_ != nullptr) {
     parent_->start_tp_scan();
+  }
+}
+void OnkyoHdmiAudioOutSelect::control(const std::string &value) {
+  if (parent_ != nullptr) {
+    parent_->set_hdmi_audio_out(value);
+  }
+}
+void OnkyoMonitorResolutionSelect::control(const std::string &value) {
+  if (parent_ != nullptr) {
+    parent_->set_monitor_resolution(value);
+  }
+}
+void OnkyoVideoWideModeSelect::control(const std::string &value) {
+  if (parent_ != nullptr) {
+    parent_->set_video_wide_mode(value);
+  }
+}
+void OnkyoPictureModeSelect::control(const std::string &value) {
+  if (parent_ != nullptr) {
+    parent_->set_picture_mode(value);
   }
 }
 }  // namespace esphome::onkyo_iscp

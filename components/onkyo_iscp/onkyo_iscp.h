@@ -227,6 +227,42 @@ class OnkyoPtySelect : public select::Select {
   OnkyoIscp *parent_{nullptr};
 };
 
+class OnkyoHdmiAudioOutSelect : public select::Select {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+
+ protected:
+  void control(const std::string &value) override;
+  OnkyoIscp *parent_{nullptr};
+};
+
+class OnkyoMonitorResolutionSelect : public select::Select {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+
+ protected:
+  void control(const std::string &value) override;
+  OnkyoIscp *parent_{nullptr};
+};
+
+class OnkyoVideoWideModeSelect : public select::Select {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+
+ protected:
+  void control(const std::string &value) override;
+  OnkyoIscp *parent_{nullptr};
+};
+
+class OnkyoPictureModeSelect : public select::Select {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+
+ protected:
+  void control(const std::string &value) override;
+  OnkyoIscp *parent_{nullptr};
+};
+
 //Buttons ####################################################################################
 class OnkyoVolumeUpButton : public button::Button {
  public:
@@ -380,6 +416,10 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   void query_tuner();
   void tuner_preset_up();
   void tuner_preset_down();
+  void set_hdmi_audio_out(const std::string &mode);
+  void set_monitor_resolution(const std::string &resolution);
+  void set_video_wide_mode(const std::string &mode);
+  void set_picture_mode(const std::string &mode);
 
 
   void set_connected_binary_sensor(binary_sensor::BinarySensor* entity) { connected_binary_sensor_ = entity; }
@@ -402,10 +442,6 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   void set_last_frame_sensor(text_sensor::TextSensor* entity) { last_frame_sensor_ = entity; }
   void set_last_unknown_frame_sensor(text_sensor::TextSensor* entity) { last_unknown_frame_sensor_ = entity; }
   void set_display_sensor(text_sensor::TextSensor* entity) { display_sensor_ = entity; }
-  void set_hdmi_audio_out_raw_sensor(text_sensor::TextSensor *entity) { hdmi_audio_out_raw_sensor_ = entity; }
-  void set_monitor_resolution_raw_sensor(text_sensor::TextSensor *entity) { monitor_resolution_raw_sensor_ = entity; }
-  void set_video_wide_mode_raw_sensor(text_sensor::TextSensor *entity) { video_wide_mode_raw_sensor_ = entity; }
-  void set_picture_mode_raw_sensor(text_sensor::TextSensor *entity) { picture_mode_raw_sensor_ = entity; }
   void set_audio_information_sensor(text_sensor::TextSensor *entity) { audio_information_sensor_ = entity; }
   void set_video_information_sensor(text_sensor::TextSensor *entity) { video_information_sensor_ = entity; }
   void set_audio_selector_select(OnkyoAudioSelectorSelect* entity) { audio_selector_select_ = entity; }
@@ -415,6 +451,10 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   void set_am_frequency_number(OnkyoAmFrequencyNumber *entity) { am_frequency_number_ = entity; }
   void set_tuner_preset_number(OnkyoTunerPresetNumber *entity) { tuner_preset_number_ = entity; }
   void set_pty_select(OnkyoPtySelect *entity) { pty_select_ = entity;}
+  void set_hdmi_audio_out_select(OnkyoHdmiAudioOutSelect *entity) { hdmi_audio_out_select_ = entity; }
+  void set_monitor_resolution_select(OnkyoMonitorResolutionSelect *entity) { monitor_resolution_select_ = entity; }
+  void set_video_wide_mode_select(OnkyoVideoWideModeSelect *entity) { video_wide_mode_select_ = entity; }
+  void set_picture_mode_select(OnkyoPictureModeSelect *entity) { picture_mode_select_ = entity; }
 
  protected:
   void read_uart_();
@@ -454,6 +494,14 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   TunerBand tuner_band_{TunerBand::UNKNOWN};
   static std::string pty_code_to_name_(const std::string &code);
   static std::string pty_name_to_code_(const std::string &name);
+  static std::string hdmi_audio_out_code_to_name_(const std::string &code);
+  static std::string hdmi_audio_out_name_to_code_(const std::string &name);
+  static std::string monitor_resolution_code_to_name_(const std::string &code);
+  static std::string monitor_resolution_name_to_code_(const std::string &name);
+  static std::string video_wide_mode_code_to_name_(const std::string &code);
+  static std::string video_wide_mode_name_to_code_(const std::string &name);
+  static std::string picture_mode_code_to_name_(const std::string &code);
+  static std::string picture_mode_name_to_code_(const std::string &name);
 
   std::string rx_buffer_;
   std::deque<std::string> command_queue_;
@@ -490,14 +538,15 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   OnkyoAmFrequencyNumber *am_frequency_number_{nullptr};
   OnkyoTunerPresetNumber *tuner_preset_number_{nullptr};
   OnkyoPtySelect *pty_select_{nullptr};
+  OnkyoHdmiAudioOutSelect *hdmi_audio_out_select_{nullptr};
+  OnkyoMonitorResolutionSelect *monitor_resolution_select_{nullptr};
+  OnkyoVideoWideModeSelect *video_wide_mode_select_{nullptr};
+  OnkyoPictureModeSelect *picture_mode_select_{nullptr};
+
   text_sensor::TextSensor* last_frame_sensor_{nullptr};
   text_sensor::TextSensor* last_unknown_frame_sensor_{nullptr};
   text_sensor::TextSensor* display_sensor_{nullptr};
   binary_sensor::BinarySensor* connected_binary_sensor_{nullptr};
-  text_sensor::TextSensor *hdmi_audio_out_raw_sensor_{nullptr};
-  text_sensor::TextSensor *monitor_resolution_raw_sensor_{nullptr};
-  text_sensor::TextSensor *video_wide_mode_raw_sensor_{nullptr};
-  text_sensor::TextSensor *picture_mode_raw_sensor_{nullptr};
   text_sensor::TextSensor *audio_information_sensor_{nullptr};
   text_sensor::TextSensor *video_information_sensor_{nullptr};
 };

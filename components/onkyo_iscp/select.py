@@ -12,6 +12,10 @@ from .const import (
     CONF_LISTENING_MODE,
     CONF_ONKYO_ISCP_ID,
     CONF_PTY,
+    CONF_HDMI_AUDIO_OUT,
+    CONF_MONITOR_RESOLUTION,
+    CONF_PICTURE_MODE,
+    CONF_VIDEO_WIDE_MODE,
     CONF_SPEAKER_LAYOUT,
 )
 
@@ -23,18 +27,26 @@ OnkyoDimmerSelect = onkyo_iscp_ns.class_( "OnkyoDimmerSelect", select.Select)
 OnkyoAudioSelectorSelect = onkyo_iscp_ns.class_("OnkyoAudioSelectorSelect", select.Select)
 OnkyoSpeakerLayoutSelect = onkyo_iscp_ns.class_("OnkyoSpeakerLayoutSelect", select.Select)
 OnkyoPtySelect = onkyo_iscp_ns.class_("OnkyoPtySelect", select.Select)
+OnkyoHdmiAudioOutSelect = onkyo_iscp_ns.class_("OnkyoHdmiAudioOutSelect", select.Select)
+OnkyoMonitorResolutionSelect = onkyo_iscp_ns.class_("OnkyoMonitorResolutionSelect", select.Select)
+OnkyoVideoWideModeSelect = onkyo_iscp_ns.class_("OnkyoVideoWideModeSelect", select.Select)
+OnkyoPictureModeSelect = onkyo_iscp_ns.class_("OnkyoPictureModeSelect", select.Select)
 
 INPUT_OPTIONS = [
     "VCR/DVR",
     "CBL/SAT",
     "GAME/TV",
-    "AUX",
+    "AUX1",
+    "AUX2",
     "PC",
     "BD/DVD",
+    "TAPE",
+    "PHONO",
     "TV/CD",
     "FM",
     "AM",
     "TUNER",
+    "MULTI CH",
     "UNIVERSAL PORT",
     "HDMI 5",
     "HDMI 6",
@@ -155,6 +167,36 @@ PTY_OPTIONS = [
     "Alarm",
 ]
 
+HDMI_AUDIO_OUT_OPTIONS = [
+    "Off",
+    "On",
+    "Auto",
+]
+
+MONITOR_RESOLUTION_OPTIONS = [
+    "Through",
+    "Auto",
+    "480p",
+    "720p",
+    "1080i",
+    "1080p",
+]
+
+VIDEO_WIDE_MODE_OPTIONS = [
+    "Auto",
+    "4:3",
+    "Full",
+    "Zoom",
+    "Wide Zoom",
+]
+
+PICTURE_MODE_OPTIONS = [
+    "Through",
+    "Custom",
+    "Cinema",
+    "Game",
+]
+
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(CONF_ONKYO_ISCP_ID): cv.use_id(OnkyoIscp),
@@ -189,6 +231,25 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_PTY): select.select_schema(
             OnkyoPtySelect,
             icon="mdi:radio",
+        ),
+        cv.Optional(CONF_HDMI_AUDIO_OUT): select.select_schema(
+            OnkyoHdmiAudioOutSelect,
+            icon="mdi:hdmi-port",
+        ),
+
+        cv.Optional(CONF_MONITOR_RESOLUTION): select.select_schema(
+            OnkyoMonitorResolutionSelect,
+            icon="mdi:monitor",
+        ),
+
+        cv.Optional(CONF_VIDEO_WIDE_MODE): select.select_schema(
+            OnkyoVideoWideModeSelect,
+            icon="mdi:aspect-ratio",
+        ),
+
+        cv.Optional(CONF_PICTURE_MODE): select.select_schema(
+            OnkyoPictureModeSelect,
+            icon="mdi:image-filter-center-focus",
         ),
     }
 )
@@ -247,3 +308,34 @@ async def to_code(config):
         )
         cg.add(var.set_parent(parent))
         cg.add(parent.set_pty_select(var))
+    if hdmi_audio_out_config := config.get(CONF_HDMI_AUDIO_OUT):
+        var = await select.new_select(
+            hdmi_audio_out_config,
+            options=HDMI_AUDIO_OUT_OPTIONS,
+        )
+        cg.add(var.set_parent(parent))
+        cg.add(parent.set_hdmi_audio_out_select(var))
+
+    if monitor_resolution_config := config.get(CONF_MONITOR_RESOLUTION):
+        var = await select.new_select(
+            monitor_resolution_config,
+            options=MONITOR_RESOLUTION_OPTIONS,
+        )
+        cg.add(var.set_parent(parent))
+        cg.add(parent.set_monitor_resolution_select(var))
+
+    if video_wide_mode_config := config.get(CONF_VIDEO_WIDE_MODE):
+        var = await select.new_select(
+            video_wide_mode_config,
+            options=VIDEO_WIDE_MODE_OPTIONS,
+        )
+        cg.add(var.set_parent(parent))
+        cg.add(parent.set_video_wide_mode_select(var))
+
+    if picture_mode_config := config.get(CONF_PICTURE_MODE):
+        var = await select.new_select(
+            picture_mode_config,
+            options=PICTURE_MODE_OPTIONS,
+        )
+        cg.add(var.set_parent(parent))
+        cg.add(parent.set_picture_mode_select(var))
