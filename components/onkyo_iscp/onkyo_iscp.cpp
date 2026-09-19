@@ -200,11 +200,16 @@ void OnkyoIscp::send_command(const std::string &command) {
 
 void OnkyoIscp::transmit_command_(const std::string &command) {
   if (command.empty()) return;
+
+  const uint32_t now = millis();
+  const uint32_t gap = now - last_command_ms_;
+
   std::string frame = command;
   if (frame.rfind("!1", 0) != 0) frame.insert(0, "!1");
   if (frame.back() != '\r') frame.push_back('\r');
+
   this->write_str(frame.c_str());
-  ESP_LOGD(TAG, "TX: %s", frame.c_str());
+  ESP_LOGD(TAG, "TX after %u ms: %s", gap, frame.c_str());
 }
 
 void OnkyoIscp::enqueue_command_(const std::string &command) {
