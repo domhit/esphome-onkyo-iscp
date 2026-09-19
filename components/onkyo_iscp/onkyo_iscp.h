@@ -237,6 +237,14 @@ class OnkyoPictureModeSelect : public select::Select {
   void control(const std::string &value) override;
   OnkyoIscp *parent_{nullptr};
 };
+class OnkyoDisplayModeSelect : public select::Select {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+
+ protected:
+  void control(const std::string &value) override;
+  OnkyoIscp *parent_{nullptr};
+};
 
 //Buttons ####################################################################################
 class OnkyoVolumeUpButton : public button::Button {
@@ -423,6 +431,30 @@ class OnkyoOsdVideoButton : public button::Button {
   void press_action() override;
   OnkyoIscp *parent_{nullptr};
 };
+class OnkyoDisplayAudioFormatButton : public button::Button {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+
+ protected:
+  void press_action() override;
+  OnkyoIscp *parent_{nullptr};
+};
+class OnkyoDisplayVideoFormatButton : public button::Button {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+
+ protected:
+  void press_action() override;
+  OnkyoIscp *parent_{nullptr};
+};
+class OnkyoDisplayModeNextButton : public button::Button {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+
+ protected:
+  void press_action() override;
+  OnkyoIscp *parent_{nullptr};
+}
 
 //Main ####################################################################################
 class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
@@ -473,6 +505,10 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   void set_video_wide_mode(const std::string &mode);
   void set_picture_mode(const std::string &mode);
   void send_osd_command(const std::string &command);
+  void set_display_mode(const std::string &mode);
+  void display_audio_format();
+  void display_video_format();
+  void display_mode_next();
 
   void set_connected_binary_sensor(binary_sensor::BinarySensor* entity) { connected_binary_sensor_ = entity; }
   void set_power_switch(OnkyoPowerSwitch* entity) { power_switch_ = entity; }
@@ -515,6 +551,7 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   void set_monitor_resolution_select(OnkyoMonitorResolutionSelect *entity) { monitor_resolution_select_ = entity; }
   void set_video_wide_mode_select(OnkyoVideoWideModeSelect *entity) { video_wide_mode_select_ = entity; }
   void set_picture_mode_select(OnkyoPictureModeSelect *entity) { picture_mode_select_ = entity; }
+  void set_display_mode_select(OnkyoDisplayModeSelect *entity) { display_mode_select_ = entity; }
 
  protected:
   void read_uart_();
@@ -567,6 +604,8 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   static std::string video_wide_mode_name_to_code_(const std::string &name);
   static std::string picture_mode_code_to_name_(const std::string &code);
   static std::string picture_mode_name_to_code_(const std::string &name);
+  static std::string display_mode_code_to_name_( const std::string &code);
+  static std::string display_mode_name_to_code_( const std::string &name);
 
   std::string rx_buffer_;
   std::deque<std::string> command_queue_;
@@ -609,7 +648,7 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   OnkyoMonitorResolutionSelect *monitor_resolution_select_{nullptr};
   OnkyoVideoWideModeSelect *video_wide_mode_select_{nullptr};
   OnkyoPictureModeSelect *picture_mode_select_{nullptr};
-
+  OnkyoDisplayModeSelect *display_mode_select_{nullptr}; 
   text_sensor::TextSensor* last_frame_sensor_{nullptr};
   text_sensor::TextSensor* last_unknown_frame_sensor_{nullptr};
   text_sensor::TextSensor* display_sensor_{nullptr};

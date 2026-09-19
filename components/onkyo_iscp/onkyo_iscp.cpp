@@ -123,6 +123,7 @@ void OnkyoIscp::query_all() {
   this->enqueue_command_("LTNQSTN");
   this->enqueue_command_("RASQSTN");
   this->enqueue_command_("MOTQSTN");
+  this->enqueue_command_("DIFQSTN")
   this->enqueue_command_("DIMQSTN");
   this->enqueue_command_("SLPQSTN");
   this->enqueue_command_("SLAQSTN");
@@ -877,6 +878,44 @@ void OnkyoIscp::send_osd_command(const std::string &command) {
   ESP_LOGD(TAG, "Sending OSD command: %s", command.c_str());
   this->enqueue_command_("OSD" + command);
 }
+void OnkyoIscp::set_display_mode(const std::string &mode) {
+  const std::string code = display_mode_name_to_code_(mode);
+
+  if (code.empty()) {
+    ESP_LOGW(TAG, "Unknown display mode option: %s", mode.c_str());
+    return;
+  }
+
+  this->enqueue_command_("DIF" + code);
+  this->enqueue_command_("DIFQSTN");
+}
+void OnkyoIscp::display_audio_format() {
+  if (!receiver_online_) {
+    ESP_LOGW(TAG, "Cannot display audio format while receiver is offline");
+    return;
+  }
+
+  this->enqueue_command_("DIF02");
+  this->enqueue_command_("IFAQSTN");
+}
+void OnkyoIscp::display_video_format() {
+  if (!receiver_online_) {
+    ESP_LOGW(TAG, "Cannot display video format while receiver is offline");
+    return;
+  }
+
+  this->enqueue_command_("DIF03");
+  this->enqueue_command_("IFVQSTN");
+}
+void OnkyoIscp::display_mode_next() {
+  if (!receiver_online_) {
+    ESP_LOGW(TAG, "Cannot change display mode while receiver is offline");
+    return;
+  }
+
+  this->enqueue_command_("DIFTG");
+  this->enqueue_command_("DIFQSTN");
+}
 // Dispatcher ##########################################################################################
 void OnkyoIscp::process_command_(const std::string& command, const std::string& value) {
   if (command == "PWR") {
@@ -1161,7 +1200,13 @@ void OnkyoIscp::process_command_(const std::string& command, const std::string& 
     } else {
       ESP_LOGD(TAG, "OSD response: %s", value.c_str());
     }
-    } else if (command == "FLD" && display_sensor_ != nullptr) {
+  } else if (command == "DIF") {
+    if (value == "02") {
+      ESP_LOGD(TAG, "Temporary audio format display requested");
+    } else if (value == "03") {
+      ESP_LOGD(TAG, "Temporary video format display requested");
+    }
+  } else if (command == "FLD" && display_sensor_ != nullptr) {
     display_sensor_->publish_state(value);
   } else {
       const std::string unknown_frame = command + value;
@@ -1721,6 +1766,16 @@ std::string OnkyoIscp::information_field_(const std::vector<std::string> &fields
 
   return value.empty() ? "N/A" : value;
 }
+std::string OnkyoIscp::display_mode_code_to_name_(const std::string &code) {
+  if (code == "00") return "Selector + Volume";
+  if (code == "01") return "Selector + Listening Mode";
+  return {}; 
+}
+std::string OnkyoIscp::display_mode_name_to_code_(const std::string &name) {
+  if (name == "Selector + Volume") return "00";
+  if (name == "Selector + Listening Mode") return "01";
+  return {};
+}
 // Control classes  ###############################################################################################################################
 void OnkyoPowerSwitch::write_state(bool state) {
   if (parent_) parent_->set_power(state);
@@ -1933,5 +1988,25 @@ void OnkyoOsdAudioButton::press_action() {
 }
 void OnkyoOsdVideoButton::press_action() {
   if (parent_ != nullptr) parent_->send_osd_command("VIDEO");
+}
+void OnkyoDisplayModeSelect::control(const std::string &value) {
+  if (parent_ != nullptr) {
+    parent_->set_display_mode(value);
+  }
+}
+void OnkyoDisplayAudioFormatButton::press_action() {
+  if (parent_ != nullptr) {
+    parent_->display_audio_format();
+  }
+}
+void OnkyoDisplayVideoFormatButton::press_action() {
+  if (parent_ != nullptr) {
+    parent_->display_video_format();
+  }
+}
+void OnkyoDisplayModeNextButton::press_action() {
+  if (parent_ != nullptr) {
+    parent_->display_mode_next();
+  }
 }
 }  // namespace esphome::onkyo_iscp
