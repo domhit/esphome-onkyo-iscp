@@ -838,7 +838,43 @@ void OnkyoIscp::process_video_information_(const std::string &value) {
     );
   }
 }
+void OnkyoIscp::send_osd_command(const std::string &command) {
+  if (!receiver_online_) {
+    ESP_LOGW(TAG, "Cannot send OSD command while receiver is offline");
+    return;
+  }
 
+  static const char *const valid_commands[] = {
+      "MENU",
+      "UP",
+      "DOWN",
+      "LEFT",
+      "RIGHT",
+      "ENTER",
+      "EXIT",
+      "HOME",
+      "QUICK",
+      "AUDIO",
+      "VIDEO",
+  };
+
+  bool valid = false;
+
+  for (const char *valid_command : valid_commands) {
+    if (command == valid_command) {
+      valid = true;
+      break;
+    }
+  }
+
+  if (!valid) {
+    ESP_LOGW(TAG, "Invalid OSD command: %s", command.c_str());
+    return;
+  }
+
+  ESP_LOGD(TAG, "Sending OSD command: %s", command.c_str());
+  this->enqueue_command_("OSD" + command);
+}
 // Dispatcher ##########################################################################################
 void OnkyoIscp::process_command_(const std::string& command, const std::string& value) {
   if (command == "PWR" && power_switch_ != nullptr) {
@@ -1082,10 +1118,37 @@ void OnkyoIscp::process_command_(const std::string& command, const std::string& 
 
       this->process_video_information_(value);
     }
+  } else if (command == "OSD") {
+    static const char *const known_commands[] = {
+        "MENU",
+        "UP",
+        "DOWN",
+        "LEFT",
+        "RIGHT",
+        "ENTER",
+        "EXIT",
+        "HOME",
+        "QUICK",
+        "AUDIO",
+        "VIDEO",
+    };
+
+    bool known = false;
+
+    for (const char *known_command : known_commands) {
+      if (value == known_command) {
+        known = true;
+        break;
+      }
+    }
+
+    if (known) {
+      ESP_LOGD(TAG, "OSD command acknowledged: %s", value.c_str());
+    } else {
+      ESP_LOGW(TAG, "Unknown OSD response: %s", value.c_str());
+    }
   } else if (command == "FLD" && display_sensor_ != nullptr) {
     display_sensor_->publish_state(value);
-
-
   } else {
       const std::string unknown_frame = command + value;
       ESP_LOGD(TAG, "Unhandled ISCP frame: %s", unknown_frame.c_str());
@@ -1823,5 +1886,38 @@ void OnkyoPictureModeSelect::control(const std::string &value) {
   if (parent_ != nullptr) {
     parent_->set_picture_mode(value);
   }
+}
+void OnkyoOsdMenuButton::press_action() {
+  if (parent_ != nullptr) parent_->send_osd_command("MENU");
+}
+void OnkyoOsdUpButton::press_action() {
+  if (parent_ != nullptr) parent_->send_osd_command("UP");
+}
+void OnkyoOsdDownButton::press_action() {
+  if (parent_ != nullptr) parent_->send_osd_command("DOWN");
+}
+void OnkyoOsdLeftButton::press_action() {
+  if (parent_ != nullptr) parent_->send_osd_command("LEFT");
+}
+void OnkyoOsdRightButton::press_action() {
+  if (parent_ != nullptr) parent_->send_osd_command("RIGHT");
+}
+void OnkyoOsdEnterButton::press_action() {
+  if (parent_ != nullptr) parent_->send_osd_command("ENTER");
+}
+void OnkyoOsdExitButton::press_action() {
+  if (parent_ != nullptr) parent_->send_osd_command("EXIT");
+}
+void OnkyoOsdHomeButton::press_action() {
+  if (parent_ != nullptr) parent_->send_osd_command("HOME");
+}
+void OnkyoOsdQuickButton::press_action() {
+  if (parent_ != nullptr) parent_->send_osd_command("QUICK");
+}
+void OnkyoOsdAudioButton::press_action() {
+  if (parent_ != nullptr) parent_->send_osd_command("AUDIO");
+}
+void OnkyoOsdVideoButton::press_action() {
+  if (parent_ != nullptr) parent_->send_osd_command("VIDEO");
 }
 }  // namespace esphome::onkyo_iscp

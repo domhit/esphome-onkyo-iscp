@@ -273,7 +273,6 @@ class OnkyoVolumeUpButton : public button::Button {
   void press_action() override;
   OnkyoIscp* parent_{nullptr};
 };
-
 class OnkyoVolumeDownButton : public button::Button {
  public:
   void set_parent(OnkyoIscp* parent) { parent_ = parent; }
@@ -282,7 +281,6 @@ class OnkyoVolumeDownButton : public button::Button {
   void press_action() override;
   OnkyoIscp* parent_{nullptr};
 };
-
 class OnkyoQueryAllButton : public button::Button {
  public:
   void set_parent(OnkyoIscp* parent) { parent_ = parent; }
@@ -291,7 +289,6 @@ class OnkyoQueryAllButton : public button::Button {
   void press_action() override;
   OnkyoIscp* parent_{nullptr};
 };
-
 class OnkyoPresetUpButton : public button::Button {
  public:
   void set_parent(OnkyoIscp *parent) { parent_ = parent; }
@@ -300,7 +297,6 @@ class OnkyoPresetUpButton : public button::Button {
   void press_action() override;
   OnkyoIscp *parent_{nullptr};
 };
-
 class OnkyoPresetDownButton : public button::Button {
  public:
   void set_parent(OnkyoIscp *parent) { parent_ = parent; }
@@ -309,7 +305,6 @@ class OnkyoPresetDownButton : public button::Button {
   void press_action() override;
   OnkyoIscp *parent_{nullptr};
 };
-
 class OnkyoPresetStoreButton : public button::Button {
  public:
   void set_parent(OnkyoIscp *parent) { parent_ = parent; }
@@ -318,7 +313,6 @@ class OnkyoPresetStoreButton : public button::Button {
   void press_action() override;
   OnkyoIscp *parent_{nullptr};
 };
-
 class OnkyoRdsRadioTextButton : public button::Button {
  public:
   void set_parent(OnkyoIscp *parent) { parent_ = parent; }
@@ -327,7 +321,6 @@ class OnkyoRdsRadioTextButton : public button::Button {
   void press_action() override;
   OnkyoIscp *parent_{nullptr};
 };
-
 class OnkyoRdsPtyButton : public button::Button {
  public:
   void set_parent(OnkyoIscp *parent) { parent_ = parent; }
@@ -336,7 +329,6 @@ class OnkyoRdsPtyButton : public button::Button {
   void press_action() override;
   OnkyoIscp *parent_{nullptr};
 };
-
 class OnkyoRdsTpButton : public button::Button {
  public:
   void set_parent(OnkyoIscp *parent) { parent_ = parent; }
@@ -345,7 +337,6 @@ class OnkyoRdsTpButton : public button::Button {
   void press_action() override;
   OnkyoIscp *parent_{nullptr};
 };
-
 class OnkyoRdsNextButton : public button::Button {
  public:
   void set_parent(OnkyoIscp *parent) { parent_ = parent; }
@@ -354,7 +345,6 @@ class OnkyoRdsNextButton : public button::Button {
   void press_action() override;
   OnkyoIscp *parent_{nullptr};
 };
-
 class OnkyoPtyScanButton : public button::Button {
  public:
   void set_parent(OnkyoIscp *parent) { parent_ = parent; }
@@ -363,8 +353,95 @@ class OnkyoPtyScanButton : public button::Button {
   void press_action() override;
   OnkyoIscp *parent_{nullptr};
 };
-
 class OnkyoTpScanButton : public button::Button {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+
+ protected:
+  void press_action() override;
+  OnkyoIscp *parent_{nullptr};
+};
+class OnkyoOsdMenuButton : public button::Button {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+
+ protected:
+  void press_action() override;
+  OnkyoIscp *parent_{nullptr};
+};
+class OnkyoOsdUpButton : public button::Button {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+
+ protected:
+  void press_action() override;
+  OnkyoIscp *parent_{nullptr};
+};
+class OnkyoOsdDownButton : public button::Button {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+
+ protected:
+  void press_action() override;
+  OnkyoIscp *parent_{nullptr};
+};
+class OnkyoOsdLeftButton : public button::Button {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+
+ protected:
+  void press_action() override;
+  OnkyoIscp *parent_{nullptr};
+};
+class OnkyoOsdRightButton : public button::Button {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+
+ protected:
+  void press_action() override;
+  OnkyoIscp *parent_{nullptr};
+};
+class OnkyoOsdEnterButton : public button::Button {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+
+ protected:
+  void press_action() override;
+  OnkyoIscp *parent_{nullptr};
+};
+class OnkyoOsdExitButton : public button::Button {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+
+ protected:
+  void press_action() override;
+  OnkyoIscp *parent_{nullptr};
+};
+class OnkyoOsdHomeButton : public button::Button {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+
+ protected:
+  void press_action() override;
+  OnkyoIscp *parent_{nullptr};
+};
+class OnkyoOsdQuickButton : public button::Button {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+
+ protected:
+  void press_action() override;
+  OnkyoIscp *parent_{nullptr};
+};
+class OnkyoOsdAudioButton : public button::Button {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+
+ protected:
+  void press_action() override;
+  OnkyoIscp *parent_{nullptr};
+};
+class OnkyoOsdVideoButton : public button::Button {
  public:
   void set_parent(OnkyoIscp *parent) { parent_ = parent; }
 
@@ -421,7 +498,7 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   void set_monitor_resolution(const std::string &resolution);
   void set_video_wide_mode(const std::string &mode);
   void set_picture_mode(const std::string &mode);
-
+  void send_osd_command(const std::string &command);
 
   void set_connected_binary_sensor(binary_sensor::BinarySensor* entity) { connected_binary_sensor_ = entity; }
   void set_power_switch(OnkyoPowerSwitch* entity) { power_switch_ = entity; }
