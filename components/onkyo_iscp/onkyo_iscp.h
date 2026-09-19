@@ -445,7 +445,7 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   void set_display_sensor(text_sensor::TextSensor* entity) { display_sensor_ = entity; }
   void set_audio_information_sensor(text_sensor::TextSensor *entity) { audio_information_sensor_ = entity; }
   void set_video_information_sensor(text_sensor::TextSensor *entity) { video_information_sensor_ = entity; }
-  void set_audio_input_format_sensor(text_sensor::TextSensor *entity) { audio_input_format_sennor_ = entity; }
+  void set_audio_input_format_sensor(text_sensor::TextSensor *entity) { audio_input_format_sensor_ = entity; }
   void set_audio_sample_rate_sensor(text_sensor::TextSensor *entity) { audio_sample_rate_sensor_ = entity; }
   void set_audio_input_channels_sensor(text_sensor::TextSensor *entity) { audio_input_channels_sensor_ = entity; }
   void set_audio_output_channels_sensor(text_sensor::TextSensor *entity) { audio_output_channels_sensor_ = entity; }
@@ -561,8 +561,6 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   text_sensor::TextSensor* last_unknown_frame_sensor_{nullptr};
   text_sensor::TextSensor* display_sensor_{nullptr};
   binary_sensor::BinarySensor* connected_binary_sensor_{nullptr};
-  text_sensor::TextSensor *audio_information_sensor_{nullptr};
-  text_sensor::TextSensor *video_information_sensor_{nullptr};
   text_sensor::TextSensor *audio_information_sensor_{nullptr};
   text_sensor::TextSensor *video_information_sensor_{nullptr};
   text_sensor::TextSensor *audio_input_format_sensor_{nullptr};

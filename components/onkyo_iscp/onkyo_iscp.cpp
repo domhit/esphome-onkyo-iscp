@@ -773,7 +773,7 @@ void OnkyoIscp::process_audio_information_(const std::string &value) {
       TAG,
       "Parsed IFA response with %u fields",
       static_cast<unsigned int>(fields.size())
-  )
+  );
 
   if (audio_input_format_sensor_ != nullptr) {
     audio_input_format_sensor_->publish_state(
@@ -812,7 +812,7 @@ void OnkyoIscp::process_video_information_(const std::string &value) {
       TAG,
       "Parsed IFV response with %u fields",
       static_cast<unsigned int>(fields.size())
-  )
+  );
 
   if (video_input_sensor_ != nullptr) {
     video_input_sensor_->publish_state(
