@@ -760,6 +760,85 @@ void OnkyoIscp::set_picture_mode(const std::string &mode) {
   this->enqueue_command_("VPM" + code);
   this->enqueue_command_("VPMQSTN");
 }
+void OnkyoIscp::process_audio_information_(const std::string &value) {
+  if (value.empty()) {
+    ESP_LOGW(TAG, "Empty audio information response");
+    return;
+  }
+
+  const std::vector<std::string> fields =
+      split_information_fields_(value);
+
+  ESP_LOGD(
+      TAG,
+      "Parsed IFA response with %u fields",
+      static_cast<unsigned int>(fields.size())
+  )
+
+  if (audio_input_format_sensor_ != nullptr) {
+    audio_input_format_sensor_->publish_state(
+        information_field_(fields, 0)
+    );
+  }
+
+  if (audio_sample_rate_sensor_ != nullptr) {
+    audio_sample_rate_sensor_->publish_state(
+      information_field_(fields, 1)
+    );
+  }
+
+  if (audio_input_channels_sensor_ != nullptr) {
+    audio_input_channels_sensor_->publish_state(
+        information_field_(fields, 2)
+    );
+  }
+
+  if (audio_output_channels_sensor_ != nullptr) {
+    audio_output_channels_sensor_->publish_state(
+        information_field_(fields, 5)
+    );
+  }
+}
+void OnkyoIscp::process_video_information_(const std::string &value) {
+  if (value.empty()) {
+    ESP_LOGW(TAG, "Empty video information response");
+    return;
+  }
+
+  const std::vector<std::string> fields =
+      split_information_fields_(value);
+
+  ESP_LOGD(
+      TAG,
+      "Parsed IFV response with %u fields",
+      static_cast<unsigned int>(fields.size())
+  )
+
+  if (video_input_sensor_ != nullptr) {
+    video_input_sensor_->publish_state(
+        information_field_(fields, 0)
+    );
+  }
+
+  if (video_input_resolution_sensor_ != nullptr) {
+    video_input_resolution_sensor_->publish_state(
+        information_field_(fields, 1)
+    );
+  }
+
+  if (video_output_sensor_ != nullptr) {
+    video_output_sensor_->publish_state(
+        information_field_(fields, 4)
+    );
+  }
+
+  if (video_output_resolution_sensor_ != nullptr) {
+    video_output_resolution_sensor_->publish_state(
+        information_field_(fields, 5)
+    );
+  }
+}
+
 // Dispatcher ##########################################################################################
 void OnkyoIscp::process_command_(const std::string& command, const std::string& value) {
   if (command == "PWR" && power_switch_ != nullptr) {
@@ -985,17 +1064,24 @@ void OnkyoIscp::process_command_(const std::string& command, const std::string& 
   } else if (command == "IFA") {
     if (value.empty()) {
       ESP_LOGW(TAG, "Empty audio information response");
-    } else if (audio_information_sensor_ != nullptr) {
-      audio_information_sensor_->publish_state(value);
+    } else {
+      if (audio_information_sensor_ != nullptr) {
+        audio_information_sensor_->publish_state(value);
+      }
+
+      this->process_audio_information_(value);
     }
 
   } else if (command == "IFV") {
     if (value.empty()) {
       ESP_LOGW(TAG, "Empty video information response");
-    } else if (video_information_sensor_ != nullptr) {
-      video_information_sensor_->publish_state(value);
-    }
+    } else {
+      if (video_information_sensor_ != nullptr) {
+        video_information_sensor_->publish_state(value);
+      }
 
+      this->process_video_information_(value);
+    }
   } else if (command == "FLD" && display_sensor_ != nullptr) {
     display_sensor_->publish_state(value);
 
@@ -1523,7 +1609,41 @@ std::string OnkyoIscp::picture_mode_name_to_code_(const std::string &name) {
   if (name == "Game") return "03";
   return {};
 }
+std::vector<std::string> OnkyoIscp::split_information_fields_(const std::string& value) {
+  std::vector<std::string> fields;
+  size_t start = 0;
 
+  while (start <= value.size()) {
+    const size_t separator = value.find(',', start);
+
+    if (separator == std::string::npos) {
+      fields.push_back(value.substr(start));
+      break;
+    }
+
+    fields.push_back(value.substr(start, separator - start));
+    start = separator + 1;
+  }
+
+  return fields;
+}
+std::string OnkyoIscp::information_field_(const std::vector<std::string> &fields, size_t index) {
+  if (index >= fields.size()) {
+    return "N/A";
+  }
+
+  std::string value = fields[index];
+
+  const size_t first = value.find_first_not_of(" \t");
+  if (first == std::string::npos) {
+    return "N/A";
+  }
+
+  const size_t last = value.find_last_not_of(" \t");
+  value = value.substr(first, last - first + 1);
+
+  return value.empty() ? "N/A" : value;
+}
 // Control classes  ###############################################################################################################################
 void OnkyoPowerSwitch::write_state(bool state) {
   if (parent_) parent_->set_power(state);

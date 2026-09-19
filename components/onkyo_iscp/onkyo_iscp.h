@@ -2,6 +2,7 @@
 
 #include <deque>
 #include <string>
+#include <vector>
 
 #include "esphome/components/binary_sensor/binary_sensor.h"
 #include "esphome/components/button/button.h"
@@ -444,6 +445,14 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   void set_display_sensor(text_sensor::TextSensor* entity) { display_sensor_ = entity; }
   void set_audio_information_sensor(text_sensor::TextSensor *entity) { audio_information_sensor_ = entity; }
   void set_video_information_sensor(text_sensor::TextSensor *entity) { video_information_sensor_ = entity; }
+  void set_audio_input_format_sensor(text_sensor::TextSensor *entity) { audio_input_format_sennor_ = entity; }
+  void set_audio_sample_rate_sensor(text_sensor::TextSensor *entity) { audio_sample_rate_sensor_ = entity; }
+  void set_audio_input_channels_sensor(text_sensor::TextSensor *entity) { audio_input_channels_sensor_ = entity; }
+  void set_audio_output_channels_sensor(text_sensor::TextSensor *entity) { audio_output_channels_sensor_ = entity; }
+  void set_video_input_sensor(text_sensor::TextSensor *entity) { video_input_sensor_ = entity; }
+  void set_video_input_resolution_sensor(text_sensor::TextSensor *entity) { video_input_resolution_sensor_ = entity; }
+  void set_video_output_sensor(text_sensor::TextSensor *entity) { video_output_sensor_ = entity; }
+  void set_video_output_resolution_sensor(text_sensor::TextSensor *entity) { video_output_resolution_sensor_ = entity; }
   void set_audio_selector_select(OnkyoAudioSelectorSelect* entity) { audio_selector_select_ = entity; }
   void set_speaker_layout_select(OnkyoSpeakerLayoutSelect* entity) { speaker_layout_select_ = entity; }
   void set_listening_mode_select(OnkyoListeningModeSelect* entity) { listening_mode_select_ = entity; }
@@ -470,6 +479,11 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   void process_sleep_timer_(const std::string& value);
   void process_tuner_frequency_(const std::string &value);
   void process_tuner_preset_(const std::string &value);
+  void process_audio_information_(const std::string &value);
+  void process_video_information_(const std::string &value);
+
+  static std::vector<std::string> split_information_fields_(const std::string &value);
+  static std::string information_field_(const std::vector<std::string> &fields, size_t index);
 
   static std::string normalize_frame_(std::string frame);
   static std::string input_code_to_name_(const std::string& code);
@@ -549,6 +563,16 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   binary_sensor::BinarySensor* connected_binary_sensor_{nullptr};
   text_sensor::TextSensor *audio_information_sensor_{nullptr};
   text_sensor::TextSensor *video_information_sensor_{nullptr};
+  text_sensor::TextSensor *audio_information_sensor_{nullptr};
+  text_sensor::TextSensor *video_information_sensor_{nullptr};
+  text_sensor::TextSensor *audio_input_format_sensor_{nullptr};
+  text_sensor::TextSensor *audio_sample_rate_sensor_{nullptr};
+  text_sensor::TextSensor *audio_input_channels_sensor_{nullptr};
+  text_sensor::TextSensor *audio_output_channels_sensor_{nullptr};
+  text_sensor::TextSensor *video_input_sensor_{nullptr};
+  text_sensor::TextSensor *video_input_resolution_sensor_{nullptr};
+  text_sensor::TextSensor *video_output_sensor_{nullptr};
+  text_sensor::TextSensor *video_output_resolution_sensor_{nullptr};
 };
 
 template <typename... Ts>
