@@ -1118,35 +1118,7 @@ void OnkyoIscp::process_command_(const std::string& command, const std::string& 
 
       this->process_video_information_(value);
     }
-  } else if (command == "OSD") {
-    static const char *const known_commands[] = {
-        "MENU",
-        "UP",
-        "DOWN",
-        "LEFT",
-        "RIGHT",
-        "ENTER",
-        "EXIT",
-        "HOME",
-        "QUICK",
-        "AUDIO",
-        "VIDEO",
-    };
 
-    bool known = false;
-
-    for (const char *known_command : known_commands) {
-      if (value == known_command) {
-        known = true;
-        break;
-      }
-    }
-
-    if (known) {
-      ESP_LOGD(TAG, "OSD command acknowledged: %s", value.c_str());
-    } else {
-      ESP_LOGW(TAG, "Unknown OSD response: %s", value.c_str());
-    }
   } else if (command == "FLD" && display_sensor_ != nullptr) {
     display_sensor_->publish_state(value);
   } else {
