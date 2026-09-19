@@ -120,7 +120,38 @@
 - Zone 2 notifications are recognized but full Zone 2 control is not
   part of this release
 
+## 0.5.0
 
+### Added
+
+- Display Mode control
+- Temporary audio-format display
+- Temporary video-format display
+- Display Mode wrap-around control
+- Automatic IFA refresh after audio-format display
+- Automatic IFV refresh after video-format display
+- Bounded ISCP command queue
+
+### Changed
+
+- Split incoming command processing into logical parser groups
+- Split full-state synchronization into logical query groups
+- Consolidated bidirectional value mappings
+- Routed all outgoing ISCP commands through the command queue
+- Raw ISCP commands now use the same queue as native entities
+- Enforced a minimum command interval of 100 ms for all outgoing commands
+
+### Fixed
+
+- Display Mode responses now update the Home Assistant select
+- Fixed the PTY `Varied` name-to-code mapping
+- Prevented direct commands from bypassing the configured command gap
+
+### Notes
+
+- The command queue is limited to 64 entries
+- Commands are intentionally not deduplicated because query order can
+  be significant
 
 ## Roadmap
 
@@ -129,29 +160,6 @@ Onkyo TX-SR608. The goal is not to expose every model-dependent ISCP
 command, but to provide reliable Home Assistant entities for useful
 receiver functions while retaining raw-command access for advanced
 use cases.
-
-### v0.5.0: Display Mode and core cleanup
-
-- Add Display Mode control using the DIF command group
-- Add Selector + Volume display mode
-- Add Selector + Listening Mode display mode
-- Add temporary audio-format display
-- Add temporary video-format display
-- Add display-mode wrap-around control
-- Refresh IFA diagnostics after requesting the audio-format display
-- Refresh IFV diagnostics after requesting the video-format display
-- Split the ISCP parser into logical command groups
-- Reduce duplicated parsing and mapping code
-- Reorganize full-state queries by subsystem
-- Review command queue behavior
-- Add queue deduplication where useful
-- Improve handling of unsupported and unavailable commands
-- Keep unknown-frame diagnostics available
-- Document the raw ISCP command action
-
-No additional large command groups are planned for this version. The
-focus is Display Mode support, code quality, maintainability and
-regression safety.
 
 ### v0.6.0: Volume and speaker levels
 
