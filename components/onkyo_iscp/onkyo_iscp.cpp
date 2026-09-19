@@ -917,7 +917,25 @@ void OnkyoIscp::display_mode_next() {
   this->enqueue_command_("DIFQSTN");
 }
 // Dispatcher ##########################################################################################
-void OnkyoIscp::process_command_(const std::string& command, const std::string& value) {
+void OnkyoIscp::process_command_(const std::string &command, const std::string &value) {
+  if (this->process_core_command_(command, value)) {
+    return;
+  }
+  if (this->process_audio_command_(command, value)) {
+    return;
+  }
+  if (this->process_tuner_command_(command, value)) {
+    return;
+  }
+  if (this->process_video_command_(command, value)) {
+    return;
+  }
+  if (this->process_auxiliary_command_(command, value)) {
+    return;
+  }
+  this->process_unknown_command_(command, value);
+}
+bool OnkyoIscp::process_core_command_(const std::string &command, const std::string &value) {
   if (command == "PWR") {
     if (value == "01") {
       const bool power_changed = !receiver_power_on_;
@@ -933,7 +951,10 @@ void OnkyoIscp::process_command_(const std::string& command, const std::string& 
         const uint32_t now = millis();
 
         if (now - last_full_query_ms_ > 1000) {
-          ESP_LOGI(TAG, "Starting full state synchronization after power on");
+          ESP_LOGI(
+              TAG,
+              "Starting full state synchronization after power on"
+          );
           this->query_all();
         }
       }
@@ -950,17 +971,45 @@ void OnkyoIscp::process_command_(const std::string& command, const std::string& 
     } else {
       ESP_LOGW(TAG, "Unknown power state: %s", value.c_str());
     }
-  } else if (command == "AMT" && mute_switch_ != nullptr) {
-    if (value == "01")
-      mute_switch_->publish_state(true);
-    else if (value == "00")
-      mute_switch_->publish_state(false);
-  } else if (command == "MVL" && volume_number_ != nullptr) {
-    char* end = nullptr;
+
+    return true;
+  }
+  if (command == "AMT") {
+    if (value == "01") {
+      if (mute_switch_ != nullptr) {
+        mute_switch_->publish_state(true);
+      }
+    } else if (value == "00") {
+      if (mute_switch_ != nullptr) {
+        mute_switch_->publish_state(false);
+      }
+    } else {
+      ESP_LOGW(TAG, "Unknown mute state: %s", value.c_str());
+    }
+
+    return true;
+  }
+  if (command == "MVL") {
+    char *end = nullptr;
     const long raw = std::strtol(value.c_str(), &end, 16);
-    if (end != value.c_str())
+
+    if (
+        end == value.c_str() ||
+        *end != '\0' ||
+        raw < 0 ||
+        raw > 100
+    ) {
+      ESP_LOGW(TAG, "Invalid master volume response: %s", value.c_str());
+      return true;
+    }
+
+    if (volume_number_ != nullptr) {
       volume_number_->publish_state(static_cast<float>(raw));
-  } else if (command == "SLI") {
+    }
+
+    return true;
+  }
+  if (command == "SLI") {
     if (value == "24") {
       tuner_band_ = TunerBand::FM;
     } else if (value == "25") {
@@ -974,115 +1023,231 @@ void OnkyoIscp::process_command_(const std::string& command, const std::string& 
 
       if (!name.empty()) {
         input_select_->publish_state(name);
+      } else {
+        ESP_LOGW(TAG, "Unknown input code: %s", value.c_str());
       }
     }
 
     if (value == "24" || value == "25" || value == "26") {
       this->query_tuner();
     }
-  } else if (command == "LMD" && listening_mode_select_ != nullptr) {
-    const std::string name = listening_mode_code_to_name_(value);
-    if (!name.empty()) {
-      listening_mode_select_->publish_state(name);
-    } else {
-      ESP_LOGW(TAG, "Unknown listening mode code: %s", value.c_str());
-    }
-  } else if (command == "TFR") {
-    this->process_front_tone_(value);
-  } else if (command == "SWL") {
-    this->process_subwoofer_level_(value);
 
-  } else if (command == "CTL") {
-    this->process_center_level_(value);
-  } else if (command == "ADY" && audyssey_switch_ != nullptr) {
-    if (value == "00") {
-      audyssey_switch_->publish_state(false);
-    } else if (value == "01") {
-      audyssey_switch_->publish_state(true);
-    } else {
-      ESP_LOGW(TAG, "Unknown Audyssey state: %s", value.c_str());
-    }
-
-  } else if (command == "ADQ" && dynamic_eq_switch_ != nullptr) {
-    if (value == "00") {
-      dynamic_eq_switch_->publish_state(false);
-    } else if (value == "01") {
-      dynamic_eq_switch_->publish_state(true);
-    } else {
-      ESP_LOGW(TAG, "Unknown Dynamic EQ state: %s", value.c_str());
-    }
-
-  } else if (command == "ADV" && dynamic_volume_select_ != nullptr) {
-    const std::string name = dynamic_volume_code_to_name_(value);
-
-    if (!name.empty()) {
-      dynamic_volume_select_->publish_state(name);
-    } else {
-      ESP_LOGW(TAG, "Unknown Dynamic Volume state: %s", value.c_str());
-    }
-  } else if (command == "RAS" && re_eq_switch_ != nullptr) {
-    if (value == "00") {
-      re_eq_switch_->publish_state(false);
-    } else if (value == "01") {
-      re_eq_switch_->publish_state(true);
-    } else {
-      ESP_LOGW(TAG, "Unknown Re-EQ state: %s", value.c_str());
-    }
-
-  } else if (command == "MOT" && music_optimizer_switch_ != nullptr) {
-    if (value == "00") {
-      music_optimizer_switch_->publish_state(false);
-    } else if (value == "01") {
-      music_optimizer_switch_->publish_state(true);
-    } else {
-      ESP_LOGW(TAG, "Unknown Music Optimizer state: %s", value.c_str());
-    }
-
-  } else if (command == "LTN" && late_night_select_ != nullptr) {
-    const std::string name = late_night_code_to_name_(value);
-
-    if (!name.empty()) {
-      late_night_select_->publish_state(name);
-    } else {
-      ESP_LOGW(TAG, "Unknown Late Night state: %s", value.c_str());
-    }
-
-  } else if (command == "DIM" && dimmer_select_ != nullptr) {
+    return true;
+  }
+  if (command == "DIM") {
     const std::string name = dimmer_code_to_name_(value);
 
     if (!name.empty()) {
-      dimmer_select_->publish_state(name);
+      if (dimmer_select_ != nullptr) {
+        dimmer_select_->publish_state(name);
+      }
     } else {
       ESP_LOGW(TAG, "Unknown dimmer state: %s", value.c_str());
     }
 
-  } else if (command == "SLP") {
+    return true;
+  }
+  if (command == "SLP") {
     this->process_sleep_timer_(value);
+    return true;
+  }
+  if (command == "DIF") {
+    if (value == "02") {
+      ESP_LOGD(TAG, "Temporary audio format display requested");
+      return true;
+    }
 
-  } else if (command == "SLA" && audio_selector_select_ != nullptr) {
-    const std::string name = audio_selector_code_to_name_(value);
+    if (value == "03") {
+      ESP_LOGD(TAG, "Temporary video format display requested");
+      return true;
+    }
+
+    if (value == "TG") {
+      ESP_LOGD(TAG, "Display mode advanced");
+      return true;
+    }
+
+    if (value == "N/A") {
+      ESP_LOGD(TAG, "Display mode is not available in the current context");
+      return true;
+    }
+
+    const std::string name = display_mode_code_to_name_(value);
 
     if (!name.empty()) {
-      audio_selector_select_->publish_state(name);
+      if (display_mode_select_ != nullptr) {
+        display_mode_select_->publish_state(name);
+      }
+    } else {
+      ESP_LOGW(TAG, "Unknown display mode response: %s", value.c_str());
+    }
+
+    return true;
+  }
+  if (command == "FLD") {
+    if (display_sensor_ != nullptr) {
+      display_sensor_->publish_state(value);
+    }
+
+    return true;
+  }
+  return false;
+}
+bool OnkyoIscp::process_audio_command_(const std::string &command, const std::string &value) {
+  if (command == "LMD") {
+    const std::string name =
+        listening_mode_code_to_name_(value);
+
+    if (!name.empty()) {
+      if (listening_mode_select_ != nullptr) {
+        listening_mode_select_->publish_state(name);
+      }
+    } else {
+      ESP_LOGW(TAG, "Unknown listening mode code: %s", value.c_str());
+    }
+
+    return true;
+  }
+  if (command == "TFR") {
+    this->process_front_tone_(value);
+    return true;
+  }
+  if (command == "SWL") {
+    this->process_subwoofer_level_(value);
+    return true;
+  }
+  if (command == "CTL") {
+    this->process_center_level_(value);
+    return true;
+  }
+  if (command == "ADY") {
+    if (value == "00") {
+      if (audyssey_switch_ != nullptr) {
+        audyssey_switch_->publish_state(false);
+      }
+    } else if (value == "01") {
+      if (audyssey_switch_ != nullptr) {
+        audyssey_switch_->publish_state(true);
+      }
+    } else {
+      ESP_LOGW(TAG, "Unknown Audyssey state: %s", value.c_str());
+    }
+
+    return true;
+  }
+  if (command == "ADQ") {
+    if (value == "00") {
+      if (dynamic_eq_switch_ != nullptr) {
+        dynamic_eq_switch_->publish_state(false);
+      }
+    } else if (value == "01") {
+      if (dynamic_eq_switch_ != nullptr) {
+        dynamic_eq_switch_->publish_state(true);
+      }
+    } else {
+      ESP_LOGW(TAG, "Unknown Dynamic EQ state: %s", value.c_str());
+    }
+
+    return true;
+  }
+  if (command == "ADV") {
+    const std::string name =
+        dynamic_volume_code_to_name_(value);
+
+    if (!name.empty()) {
+      if (dynamic_volume_select_ != nullptr) {
+        dynamic_volume_select_->publish_state(name);
+      }
+    } else {
+      ESP_LOGW(TAG, "Unknown Dynamic Volume state: %s", value.c_str());
+    }
+
+    return true;
+  }
+  if (command == "RAS") {
+    if (value == "00") {
+      if (re_eq_switch_ != nullptr) {
+        re_eq_switch_->publish_state(false);
+      }
+    } else if (value == "01") {
+      if (re_eq_switch_ != nullptr) {
+        re_eq_switch_->publish_state(true);
+      }
+    } else {
+      ESP_LOGW(TAG, "Unknown Re-EQ state: %s", value.c_str());
+    }
+
+    return true;
+  }
+  if (command == "MOT") {
+    if (value == "00") {
+      if (music_optimizer_switch_ != nullptr) {
+        music_optimizer_switch_->publish_state(false);
+      }
+    } else if (value == "01") {
+      if (music_optimizer_switch_ != nullptr) {
+        music_optimizer_switch_->publish_state(true);
+      }
+    } else {
+      ESP_LOGW(TAG, "Unknown Music Optimizer state: %s", value.c_str());
+    }
+
+    return true;
+  }
+  if (command == "LTN") {
+    const std::string name =
+        late_night_code_to_name_(value);
+
+    if (!name.empty()) {
+      if (late_night_select_ != nullptr) {
+        late_night_select_->publish_state(name);
+      }
+    } else {
+      ESP_LOGW(TAG, "Unknown Late Night state: %s", value.c_str());
+    }
+
+    return true;
+  }
+  if (command == "SLA") {
+    const std::string name =
+        audio_selector_code_to_name_(value);
+
+    if (!name.empty()) {
+      if (audio_selector_select_ != nullptr) {
+        audio_selector_select_->publish_state(name);
+      }
     } else {
       ESP_LOGW(TAG, "Unknown audio selector state: %s", value.c_str());
     }
 
-  } else if (command == "SPL" && speaker_layout_select_ != nullptr) {
-    const std::string name = speaker_layout_code_to_name_(value);
+    return true;
+  }
+  if (command == "SPL") {
+    const std::string name =
+        speaker_layout_code_to_name_(value);
 
     if (!name.empty()) {
-      speaker_layout_select_->publish_state(name);
+      if (speaker_layout_select_ != nullptr) {
+        speaker_layout_select_->publish_state(name);
+      }
     } else {
       ESP_LOGW(TAG, "Unknown speaker layout state: %s", value.c_str());
     }
-  } else if (command == "TUN" || command == "TUZ") {
+
+    return true;
+  }
+  return false;
+}
+bool OnkyoIscp::process_tuner_command_(const std::string &command, const std::string &value) {
+  if (command == "TUN" || command == "TUZ") {
     this->process_tuner_frequency_(value);
-
-  } else if (command == "PRS" || command == "PRZ") {
+    return true;
+  }
+  if (command == "PRS" || command == "PRZ") {
     this->process_tuner_preset_(value);
-
-  } else if (command == "RDS") {
+    return true;
+  }
+  if (command == "RDS") {
     if (value == "00") {
       ESP_LOGD(TAG, "RDS display mode: Radio Text");
     } else if (value == "01") {
@@ -1095,9 +1260,14 @@ void OnkyoIscp::process_command_(const std::string& command, const std::string& 
       ESP_LOGW(TAG, "Unknown RDS response: %s", value.c_str());
     }
 
-  } else if (command == "PTS") {
+    return true;
+  }
+  if (command == "PTS") {
     if (value == "N/A") {
-      ESP_LOGD(TAG, "PTY scan is not available for the current station");
+      ESP_LOGD(
+          TAG,
+          "PTY scan is not available for the current station"
+      );
     } else if (value == "SCAN") {
       ESP_LOGD(TAG, "PTY scan started");
     } else {
@@ -1114,16 +1284,28 @@ void OnkyoIscp::process_command_(const std::string& command, const std::string& 
       }
     }
 
-  } else if (command == "TPS") {
+    return true;
+  }
+  if (command == "TPS") {
     if (value == "N/A") {
-      ESP_LOGD(TAG, "TP scan is not available for the current station");
+      ESP_LOGD(
+          TAG,
+          "TP scan is not available for the current station"
+      );
     } else if (value == "SCAN") {
       ESP_LOGD(TAG, "TP scan started");
     } else {
       ESP_LOGD(TAG, "TP scan response: %s", value.c_str());
     }
-  } else if (command == "HAO") {
-    const std::string name = hdmi_audio_out_code_to_name_(value);
+
+    return true;
+  }
+  return false;
+}
+bool OnkyoIscp::process_video_command_(const std::string &command, const std::string &value) {
+  if (command == "HAO") {
+    const std::string name =
+        hdmi_audio_out_code_to_name_(value);
 
     if (!name.empty()) {
       if (hdmi_audio_out_select_ != nullptr) {
@@ -1133,8 +1315,11 @@ void OnkyoIscp::process_command_(const std::string& command, const std::string& 
       ESP_LOGW(TAG, "Unknown HDMI Audio Out state: %s", value.c_str());
     }
 
-  } else if (command == "RES") {
-    const std::string name = monitor_resolution_code_to_name_(value);
+    return true;
+  }
+  if (command == "RES") {
+    const std::string name =
+        monitor_resolution_code_to_name_(value);
 
     if (!name.empty()) {
       if (monitor_resolution_select_ != nullptr) {
@@ -1144,8 +1329,11 @@ void OnkyoIscp::process_command_(const std::string& command, const std::string& 
       ESP_LOGW(TAG, "Unknown monitor resolution state: %s", value.c_str());
     }
 
-  } else if (command == "VWM") {
-    const std::string name = video_wide_mode_code_to_name_(value);
+    return true;
+  }
+  if (command == "VWM") {
+    const std::string name =
+        video_wide_mode_code_to_name_(value);
 
     if (!name.empty()) {
       if (video_wide_mode_select_ != nullptr) {
@@ -1155,8 +1343,11 @@ void OnkyoIscp::process_command_(const std::string& command, const std::string& 
       ESP_LOGW(TAG, "Unknown Video Wide Mode state: %s", value.c_str());
     }
 
-  } else if (command == "VPM") {
-    const std::string name = picture_mode_code_to_name_(value);
+    return true;
+  }
+  if (command == "VPM") {
+    const std::string name =
+        picture_mode_code_to_name_(value);
 
     if (!name.empty()) {
       if (picture_mode_select_ != nullptr) {
@@ -1165,7 +1356,10 @@ void OnkyoIscp::process_command_(const std::string& command, const std::string& 
     } else {
       ESP_LOGW(TAG, "Unknown Picture Mode state: %s", value.c_str());
     }
-  } else if (command == "IFA") {
+
+    return true;
+  }
+  if (command == "IFA") {
     if (value.empty()) {
       ESP_LOGW(TAG, "Empty audio information response");
     } else {
@@ -1176,7 +1370,9 @@ void OnkyoIscp::process_command_(const std::string& command, const std::string& 
       this->process_audio_information_(value);
     }
 
-  } else if (command == "IFV") {
+    return true;
+  }
+  if (command == "IFV") {
     if (value.empty()) {
       ESP_LOGW(TAG, "Empty video information response");
     } else {
@@ -1186,34 +1382,53 @@ void OnkyoIscp::process_command_(const std::string& command, const std::string& 
 
       this->process_video_information_(value);
     }
-  } else if (command == "TST") {
+
+    return true;
+  }
+  return false;
+}
+bool OnkyoIscp::process_auxiliary_command_(const std::string &command, const std::string &value) {
+  if (command == "TST") {
     if (value == "N/A") {
       ESP_LOGD(TAG, "TST function is not available");
     } else {
       ESP_LOGD(TAG, "TST response: %s", value.c_str());
     }
-  } else if (command == "SLZ") {
-    ESP_LOGD(TAG, "Zone 2 input selector notification: %s", value.c_str());
-  } else if (command == "OSD") {
+
+    return true;
+  }
+  if (command == "SLZ") {
+    ESP_LOGD(
+        TAG,
+        "Zone 2 input selector notification: %s",
+        value.c_str()
+    );
+
+    return true;
+  }
+  if (command == "OSD") {
     if (value == "N/A") {
-      ESP_LOGD(TAG, "OSD command is not available in the current context");
+      ESP_LOGD(
+          TAG,
+          "OSD command is not available in the current context"
+      );
     } else {
       ESP_LOGD(TAG, "OSD response: %s", value.c_str());
     }
-  } else if (command == "DIF") {
-    if (value == "02") {
-      ESP_LOGD(TAG, "Temporary audio format display requested");
-    } else if (value == "03") {
-      ESP_LOGD(TAG, "Temporary video format display requested");
-    }
-  } else if (command == "FLD" && display_sensor_ != nullptr) {
-    display_sensor_->publish_state(value);
-  } else {
-      const std::string unknown_frame = command + value;
-      ESP_LOGD(TAG, "Unhandled ISCP frame: %s", unknown_frame.c_str());
-      if (last_unknown_frame_sensor_ != nullptr) {
-        last_unknown_frame_sensor_->publish_state(unknown_frame);
-      }
+
+    return true;
+  }
+  return false;
+}
+void OnkyoIscp::process_unknown_command_(const std::string &command, const std::string &value) {
+  const std::string unknown_frame = command + value;
+  ESP_LOGD(
+      TAG,
+      "Unhandled ISCP frame: %s",
+      unknown_frame.c_str()
+  );
+  if (last_unknown_frame_sensor_ != nullptr) {
+    last_unknown_frame_sensor_->publish_state(unknown_frame);
   }
 }
 // Mappings ###############################################################################################################################
@@ -1503,7 +1718,7 @@ std::string OnkyoIscp::pty_code_to_name_(const std::string &code) {
 std::string OnkyoIscp::pty_name_to_code_(const std::string &name) {
   static const char *const names[] = {
       "None", "News", "Affairs", "Info", "Sport", "Educate", "Drama",
-      "Culture", "Science", "VVaried", "Pop M", "Rock M", "Easy M",
+      "Culture", "Science", "Varied", "Pop M", "Rock M", "Easy M",
       "Light M", "Classics", "Other M", "Weather", "Finance", "Children",
       "Social", "Religion", "Phone In", "Travel", "Leisure", "Jazz",
       "Country", "Nation M", "Oldies", "Folk M", "Document", "TEST", "Alarm",

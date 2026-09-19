@@ -557,6 +557,12 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   void read_uart_();
   void process_frame_(std::string frame);
   void process_command_(const std::string& command, const std::string& value);
+  bool process_core_command_(const std::string &command, const std::string &value);
+  bool process_audio_command_(const std::string &command, const std::string &value);
+  bool process_tuner_command_(const std::string &command, const std::string &value);
+  bool process_video_command_(const std::string &command, const std::string &value);
+  bool process_auxiliary_command_(const std::string &command, const std::string &value);
+  void process_unknown_command_(const std::string &command, const std::string &value);
   void enqueue_command_(const std::string& command);
   void process_queue_();
   void mark_receiver_online_();
