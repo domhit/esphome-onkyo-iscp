@@ -75,18 +75,52 @@
 - No separate RDS station name or Radio Text data frames were
   observed on the TX-SR608
 - PTY and TP searches can return N/A depending on station metadata
-  
-# Planned changes
 
 ## 0.4.0
-HAO
-RES
-VWM
-VPM
-DIF
-IFA
-IFV
-OSD
+
+### Added
+
+- HDMI Audio Out control
+- Monitor output resolution control
+- Video Wide Mode control
+- Picture Mode control
+- Raw audio signal information
+- Structured audio signal diagnostics
+- Raw video signal information
+- Structured video signal diagnostics
+- OSD and setup navigation
+- OSD quick, audio and video menu controls
+- Full state synchronization after the receiver powers on
+
+### Changed
+
+- Added HDMI and video state queries to full synchronization
+- Preserved raw IFA and IFV responses for diagnostics
+- Added defensive parsing for variable information fields
+- Updated input options from AUX to AUX1 and AUX2
+- OSD actions now use a validated command whitelist
+- OSD actions are blocked while receiver communication is offline
+
+### Fixed
+
+- AUX1 and AUX2 responses no longer produce invalid select option errors
+- Removed duplicate C++ helper method definitions
+- Power-on from standby now triggers a full state refresh
+- Prevented duplicate full synchronization after power restoration
+- `TSTN/A` is handled as a known unavailable function
+- `SLZ80` is handled as a Zone 2 input notification
+- `OSDN/A` is handled as a valid unavailable OSD response
+
+### Known limitations
+
+- Successful OSD commands do not return acknowledgements on the TX-SR608
+- IFA and IFV fields depend on the selected source and signal type
+- HDMI signal diagnostics need additional real-world validation with
+  connected HDMI sources and a display
+- Zone 2 notifications are recognized but full Zone 2 control is not
+  part of this release
+
+# Planned changes
 
 ## open
 korrekte dB-Umrechnung

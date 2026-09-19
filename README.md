@@ -63,6 +63,84 @@ data frames. RDS commands control the receiver display.
 PTY and TP searches may return N/A depending on the station,
 broadcast metadata and current reception conditions.
 
+### Video and HDMI
+
+Version 0.4.0 adds bidirectional HDMI and video controls:
+
+- HDMI Audio Out
+- Monitor output resolution
+- Video Wide Mode
+- Picture Mode
+- Raw audio signal information
+- Structured audio diagnostics
+- Raw video signal information
+- Structured video diagnostics
+- OSD and setup navigation
+
+### HDMI and video controls
+
+| Entity | ISCP command | Supported values |
+|---|---|---|
+| HDMI Audio Out | HAO | Off, On, Auto |
+| Monitor Resolution | RES | Through, Auto, 480p, 720p, 1080i, 1080p |
+| Video Wide Mode | VWM | Auto, 4:3, Full, Zoom, Wide Zoom |
+| Picture Mode | VPM | Through, Custom, Cinema, Game |
+
+All writable values are followed by a status query. Home Assistant
+therefore displays the state reported by the receiver rather than
+assuming that a requested setting was accepted.
+
+### Audio and video diagnostics
+
+The component provides the full IFA and IFV responses as optional raw
+diagnostic sensors.
+
+Additional structured sensors expose:
+
+Audio:
+
+- Input format
+- Sample rate
+- Input channels
+- Output channels
+
+Video:
+
+- Video input
+- Input resolution
+- Video output
+- Output resolution
+
+IFA and IFV responses are parsed defensively because the available
+fields depend on the selected source, signal type and receiver
+firmware. Missing fields are reported as `N/A`.
+
+### OSD controls
+
+The following OSD actions are available:
+
+- Setup menu
+- Up
+- Down
+- Left
+- Right
+- Enter
+- Exit
+- Home
+- Quick Setup
+- Audio menu
+- Video menu
+
+The TX-SR608 accepts these commands without returning a successful
+ISCP acknowledgement. Operation was verified using the receiver front
+display.
+
+A response of `OSDN/A` means that the requested action is not available
+in the current context.
+
+OSD entities are action buttons and do not represent the current menu
+position.
+
 ## Struktur
 
 ```text
