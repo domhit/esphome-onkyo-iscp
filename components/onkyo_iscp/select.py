@@ -6,17 +6,18 @@ from . import OnkyoIscp, onkyo_iscp_ns
 from .const import (
     CONF_AUDIO_SELECTOR,
     CONF_DIMMER,
+    CONF_DISPLAY_MODE,
     CONF_DYNAMIC_VOLUME,
+    CONF_HDMI_AUDIO_OUT,
     CONF_INPUT,
     CONF_LATE_NIGHT,
     CONF_LISTENING_MODE,
-    CONF_ONKYO_ISCP_ID,
-    CONF_PTY,
-    CONF_HDMI_AUDIO_OUT,
     CONF_MONITOR_RESOLUTION,
+    CONF_ONKYO_ISCP_ID,
     CONF_PICTURE_MODE,
-    CONF_VIDEO_WIDE_MODE,
+    CONF_PTY,
     CONF_SPEAKER_LAYOUT,
+    CONF_VIDEO_WIDE_MODE,
 )
 
 OnkyoInputSelect = onkyo_iscp_ns.class_("OnkyoInputSelect", select.Select)
@@ -31,6 +32,7 @@ OnkyoHdmiAudioOutSelect = onkyo_iscp_ns.class_("OnkyoHdmiAudioOutSelect", select
 OnkyoMonitorResolutionSelect = onkyo_iscp_ns.class_("OnkyoMonitorResolutionSelect", select.Select)
 OnkyoVideoWideModeSelect = onkyo_iscp_ns.class_("OnkyoVideoWideModeSelect", select.Select)
 OnkyoPictureModeSelect = onkyo_iscp_ns.class_("OnkyoPictureModeSelect", select.Select)
+OnkyoDisplayModeSelect = onkyo_iscp_ns.class_("OnkyoDisplayModeSelect", select.Select)
 
 INPUT_OPTIONS = [
     "VCR/DVR",
@@ -197,6 +199,12 @@ PICTURE_MODE_OPTIONS = [
     "Game",
 ]
 
+
+DISPLAY_MODE_OPTIONS = [
+    "Selector + Volume",
+    "Selector + Listening Mode",
+]
+
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(CONF_ONKYO_ISCP_ID): cv.use_id(OnkyoIscp),
@@ -236,24 +244,24 @@ CONFIG_SCHEMA = cv.Schema(
             OnkyoHdmiAudioOutSelect,
             icon="mdi:hdmi-port",
         ),
-
         cv.Optional(CONF_MONITOR_RESOLUTION): select.select_schema(
             OnkyoMonitorResolutionSelect,
             icon="mdi:monitor",
         ),
-
         cv.Optional(CONF_VIDEO_WIDE_MODE): select.select_schema(
             OnkyoVideoWideModeSelect,
             icon="mdi:aspect-ratio",
         ),
-
         cv.Optional(CONF_PICTURE_MODE): select.select_schema(
             OnkyoPictureModeSelect,
             icon="mdi:image-filter-center-focus",
         ),
+        cv.Optional(CONF_DISPLAY_MODE): select.select_schema(
+            OnkyoDisplayModeSelect,
+            icon="mdi:television-guide",
+        ),
     }
 )
-
 
 async def to_code(config):
     parent = await cg.get_variable(config[CONF_ONKYO_ISCP_ID])
@@ -315,7 +323,6 @@ async def to_code(config):
         )
         cg.add(var.set_parent(parent))
         cg.add(parent.set_hdmi_audio_out_select(var))
-
     if monitor_resolution_config := config.get(CONF_MONITOR_RESOLUTION):
         var = await select.new_select(
             monitor_resolution_config,
@@ -323,7 +330,6 @@ async def to_code(config):
         )
         cg.add(var.set_parent(parent))
         cg.add(parent.set_monitor_resolution_select(var))
-
     if video_wide_mode_config := config.get(CONF_VIDEO_WIDE_MODE):
         var = await select.new_select(
             video_wide_mode_config,
@@ -331,7 +337,6 @@ async def to_code(config):
         )
         cg.add(var.set_parent(parent))
         cg.add(parent.set_video_wide_mode_select(var))
-
     if picture_mode_config := config.get(CONF_PICTURE_MODE):
         var = await select.new_select(
             picture_mode_config,
@@ -339,3 +344,10 @@ async def to_code(config):
         )
         cg.add(var.set_parent(parent))
         cg.add(parent.set_picture_mode_select(var))
+    if display_mode_config := config.get(CONF_DISPLAY_MODE):
+        var = await select.new_select(
+            display_mode_config,
+            options=DISPLAY_MODE_OPTIONS,
+        )
+        cg.add(var.set_parent(parent))
+        cg.add(parent.set_display_mode_select(var))

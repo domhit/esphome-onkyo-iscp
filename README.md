@@ -141,6 +141,24 @@ in the current context.
 OSD entities are action buttons and do not represent the current menu
 position.
 
+## Internal architecture
+
+Incoming ISCP frames are normalized and routed through logical parser
+groups:
+
+- Core
+- Audio
+- Tuner
+- Video and signal diagnostics
+- Auxiliary commands
+- Unknown-frame diagnostics
+
+Full-state synchronization is split into matching query groups.
+
+All outbound commands use a shared command queue. The queue preserves
+command order and enforces a minimum transmission interval of 100 ms.
+This also applies to buttons and raw ISCP commands.
+
 ## Struktur
 
 ```text

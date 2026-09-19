@@ -28,6 +28,9 @@ from .const import (
     CONF_OSD_RIGHT,
     CONF_OSD_UP,
     CONF_OSD_VIDEO,
+    CONF_DISPLAY_AUDIO_FORMAT,
+    CONF_DISPLAY_MODE_NEXT,
+    CONF_DISPLAY_VIDEO_FORMAT,
 )
 
 OnkyoVolumeUpButton = onkyo_iscp_ns.class_("OnkyoVolumeUpButton", button.Button)
@@ -53,6 +56,9 @@ OnkyoOsdHomeButton = onkyo_iscp_ns.class_("OnkyoOsdHomeButton", button.Button)
 OnkyoOsdQuickButton = onkyo_iscp_ns.class_("OnkyoOsdQuickButton", button.Button)
 OnkyoOsdAudioButton = onkyo_iscp_ns.class_("OnkyoOsdAudioButton", button.Button)
 OnkyoOsdVideoButton = onkyo_iscp_ns.class_("OnkyoOsdVideoButton", button.Button)
+OnkyoDisplayAudioFormatButton = onkyo_iscp_ns.class_("OnkyoDisplayAudioFormatButton", button.Button)
+OnkyoDisplayVideoFormatButton = onkyo_iscp_ns.class_("OnkyoDisplayVideoFormatButton", button.Button)
+OnkyoDisplayModeNextButton = onkyo_iscp_ns.class_("OnkyoDisplayModeNextButton", button.Button)
 
 CONFIG_SCHEMA = cv.Schema(
     {
@@ -74,7 +80,7 @@ CONFIG_SCHEMA = cv.Schema(
             OnkyoPresetDownButton,
             icon="mdi:arrow-down-bold",
         ),
-                cv.Optional(CONF_PRESET_STORE): button.button_schema(
+        cv.Optional(CONF_PRESET_STORE): button.button_schema(
             OnkyoPresetStoreButton,
             icon="mdi:content-save",
         ),
@@ -146,6 +152,18 @@ CONFIG_SCHEMA = cv.Schema(
             OnkyoOsdVideoButton,
             icon="mdi:video-outline",
         ),
+        cv.Optional(CONF_DISPLAY_AUDIO_FORMAT): button.button_schema(
+            OnkyoDisplayAudioFormatButton,
+            icon="mdi:waveform",
+        ),
+        cv.Optional(CONF_DISPLAY_VIDEO_FORMAT): button.button_schema(
+            OnkyoDisplayVideoFormatButton,
+            icon="mdi:video-outline",
+        ),
+        cv.Optional(CONF_DISPLAY_MODE_NEXT): button.button_schema(
+            OnkyoDisplayModeNextButton,
+            icon="mdi:repeat",
+        ),
     }
 )
 
@@ -177,6 +195,9 @@ async def to_code(config):
         CONF_OSD_QUICK,
         CONF_OSD_AUDIO,
         CONF_OSD_VIDEO,
+        CONF_DISPLAY_AUDIO_FORMAT,
+        CONF_DISPLAY_VIDEO_FORMAT,
+        CONF_DISPLAY_MODE_NEXT,
     ):
         if button_config := config.get(key):
             var = await button.new_button(button_config)
