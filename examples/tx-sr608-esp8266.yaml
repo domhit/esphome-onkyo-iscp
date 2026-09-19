@@ -37,7 +37,7 @@ external_components:
   - source:
       type: git
       url: https://github.com/domhit/esphome-onkyo-iscp
-      ref: dev/v0.3.0
+      ref: dev/v0.4.0
     components:
       - onkyo_iscp
     refresh: 0s
@@ -155,6 +155,22 @@ select:
 
     pty:
       name: RDS Programmtyp
+
+    hdmi_audio_out:
+      name: HDMI Audio Out
+      disabled_by_default: true
+
+    monitor_resolution:
+      name: Monitor-Auflösung
+      disabled_by_default: true
+
+    video_wide_mode:
+      name: Video Wide Mode
+      disabled_by_default: true
+
+    picture_mode:
+      name: Picture Mode
+      disabled_by_default: true
       
 button:
   - platform: onkyo_iscp
@@ -196,10 +212,59 @@ button:
     tp_scan:
       name: TP-Suche starten
 
+    osd_menu:
+      name: Setup-Menü
+      disabled_by_default: true
+
+    osd_up:
+      name: OSD Hoch
+      disabled_by_default: true
+
+    osd_down:
+      name: OSD Runter
+      disabled_by_default: true
+
+    osd_left:
+      name: OSD Links
+      disabled_by_default: true
+
+    osd_right:
+      name: OSD Rechts
+      disabled_by_default: true
+
+    osd_enter:
+      name: OSD Bestätigen
+      disabled_by_default: true
+
+    osd_exit:
+      name: OSD Beenden
+      disabled_by_default: true
+
+    osd_home:
+      name: OSD Home
+      disabled_by_default: true
+
+    osd_quick:
+      name: Quick Setup
+      disabled_by_default: true
+
+    osd_audio:
+      name: Audio-Menü
+      disabled_by_default: true
+
+    osd_video:
+      name: Video-Menü
+      disabled_by_default: true
       
 text_sensor:
   - platform: onkyo_iscp
     onkyo_iscp_id: onkyo_receiver
+
+    audio_information:
+      name: Audio-Signalinformation
+
+    video_information:
+      name: Video-Signalinformation
 
     last_frame:
       name: Letzter ISCP-Frame
@@ -210,3 +275,27 @@ text_sensor:
     display:
       name: Display
       disabled_by_default: true
+
+    audio_input_format:
+      name: Audio-Eingangsformat
+
+    audio_sample_rate:
+      name: Audio-Abtastrate
+
+    audio_input_channels:
+      name: Audio-Eingangskanäle
+
+    audio_output_channels:
+      name: Audio-Ausgangskanäle
+
+    video_input:
+      name: Video-Eingang
+
+    video_input_resolution:
+      name: Video-Eingangsauflösung
+
+    video_output:
+      name: Video-Ausgang
+
+    video_output_resolution:
+      name: Video-Ausgangsauflösung
