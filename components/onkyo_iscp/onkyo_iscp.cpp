@@ -123,7 +123,7 @@ void OnkyoIscp::query_all() {
   this->enqueue_command_("LTNQSTN");
   this->enqueue_command_("RASQSTN");
   this->enqueue_command_("MOTQSTN");
-  this->enqueue_command_("DIFQSTN")
+  this->enqueue_command_("DIFQSTN");
   this->enqueue_command_("DIMQSTN");
   this->enqueue_command_("SLPQSTN");
   this->enqueue_command_("SLAQSTN");

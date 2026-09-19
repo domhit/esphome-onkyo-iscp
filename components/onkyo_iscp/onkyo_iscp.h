@@ -454,7 +454,7 @@ class OnkyoDisplayModeNextButton : public button::Button {
  protected:
   void press_action() override;
   OnkyoIscp *parent_{nullptr};
-}
+};
 
 //Main ####################################################################################
 class OnkyoIscp : public PollingComponent, public uart::UARTDevice {

@@ -120,16 +120,97 @@
 - Zone 2 notifications are recognized but full Zone 2 control is not
   part of this release
 
-# Planned changes
 
-## open
-korrekte dB-Umrechnung
-Lautsprecherpegel
-Parserstruktur für weitere ISCP-Kommandogruppen vorbereiten
-Rohbefehl-Funktion für Entwicklungszwecke behalten
 
-## Version 1.0.0
-auf TX-SR608 vollständig getestet
-reproduzierbare Beispielkonfiguration
-bekannte Einschränkungen dokumentiert
+## Roadmap
 
+Development is focused on stable and well-tested support for the
+Onkyo TX-SR608. The goal is not to expose every model-dependent ISCP
+command, but to provide reliable Home Assistant entities for useful
+receiver functions while retaining raw-command access for advanced
+use cases.
+
+### v0.5.0: Display Mode and core cleanup
+
+- Add Display Mode control using the DIF command group
+- Add Selector + Volume display mode
+- Add Selector + Listening Mode display mode
+- Add temporary audio-format display
+- Add temporary video-format display
+- Add display-mode wrap-around control
+- Refresh IFA diagnostics after requesting the audio-format display
+- Refresh IFV diagnostics after requesting the video-format display
+- Split the ISCP parser into logical command groups
+- Reduce duplicated parsing and mapping code
+- Reorganize full-state queries by subsystem
+- Review command queue behavior
+- Add queue deduplication where useful
+- Improve handling of unsupported and unavailable commands
+- Keep unknown-frame diagnostics available
+- Document the raw ISCP command action
+
+No additional large command groups are planned for this version. The
+focus is Display Mode support, code quality, maintainability and
+regression safety.
+
+### v0.6.0: Volume and speaker levels
+
+- Convert master-volume raw values to the actual receiver dB scale
+- Verify volume conversion against the TX-SR608 front display
+- Investigate and support half-dB volume steps where available
+- Add permanent speaker calibration levels where supported
+- Keep temporary Center and Subwoofer level controls separate from
+  permanent speaker calibration
+- Mark calibration entities as disabled by default
+
+### v0.7.0: Stabilization and release candidate
+
+- Extended runtime testing
+- Standby and power-cycle testing
+- Receiver disconnect and reconnect testing
+- UART startup-noise testing
+- Home Assistant API reconnect testing
+- Command queue stress testing
+- Input and listening-mode regression testing
+- Tuner and preset regression testing
+- HDMI, video and OSD regression testing
+- Review all known and unknown ISCP frames
+- Freeze the public YAML configuration before version 1.0.0
+
+### v1.0.0: Stable release
+
+Version 1.0.0 will focus on stability and reproducibility rather than
+implementing every command available in the complete ISCP protocol.
+
+Release requirements:
+
+- Fully tested on the Onkyo TX-SR608
+- Reproducible ESPHome example configuration
+- Documented hardware and UART wiring
+- Documented supported entities and commands
+- Documented known limitations
+- Stable reconnect and state synchronization
+- Correct master-volume dB conversion
+- Verified speaker-level handling
+- Structured and maintainable command parser
+- Raw ISCP command action retained for development and advanced use
+- Complete regression test passed
+- Multi-day stability test passed
+- Public YAML configuration considered stable
+
+### Future considerations
+
+The following features are intentionally outside the current roadmap
+and may be considered after version 1.0.0:
+
+- Full Zone 2 control
+- Zone 3 support
+- Network and USB playback
+- Onkyo dock and iPod control
+- HDMI and digital-input assignment
+- Extended speaker setup
+- Additional model-specific ISCP commands
+
+Zone-related notifications may still be recognized to prevent them
+from appearing as unknown frames, even when full zone control is not
+implemented.
