@@ -199,6 +199,12 @@ PICTURE_MODE_OPTIONS = [
     "Game",
 ]
 
+
+DISPLAY_MODE_OPTIONS = [
+    "Selector + Volume",
+    "Selector + Listening Mode",
+]
+
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(CONF_ONKYO_ISCP_ID): cv.use_id(OnkyoIscp),
