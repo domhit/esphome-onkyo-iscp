@@ -194,7 +194,11 @@ void OnkyoIscp::check_receiver_timeout_() {
     connected_binary_sensor_->publish_state(false);
   }
 }
-void OnkyoIscp::send_command(const std::string& command) {
+void OnkyoIscp::send_command(const std::string &command) {
+  this->enqueue_command_(command);
+}
+
+void OnkyoIscp::transmit_command_(const std::string &command) {
   if (command.empty()) return;
   std::string frame = command;
   if (frame.rfind("!1", 0) != 0) frame.insert(0, "!1");
@@ -202,14 +206,24 @@ void OnkyoIscp::send_command(const std::string& command) {
   this->write_str(frame.c_str());
   ESP_LOGD(TAG, "TX: %s", frame.c_str());
 }
-void OnkyoIscp::enqueue_command_(const std::string& command) {
+
+void OnkyoIscp::enqueue_command_(const std::string &command) {
+  if (command.empty()) {
+    ESP_LOGW(TAG, "Ignoring empty ISCP command");
+    return;
+  }
+  if (command_queue_.size() >= MAX_COMMAND_QUEUE_SIZE) {
+    ESP_LOGW(TAG, "ISCP command queue full, dropping command: %s", command.c_str());
+    return;
+  }
   command_queue_.push_back(command);
 }
+
 void OnkyoIscp::process_queue_() {
   if (command_queue_.empty()) return;
   const uint32_t now = millis();
   if (now - last_command_ms_ < COMMAND_GAP_MS) return;
-  this->send_command(command_queue_.front());
+  this->transmit_command_(command_queue_.front());
   command_queue_.pop_front();
   last_command_ms_ = now;
 }

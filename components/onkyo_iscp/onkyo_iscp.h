@@ -567,8 +567,9 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   void query_audio_();
   void query_display_();
   void query_routing_();
-  void enqueue_command_(const std::string& command);
+  void enqueue_command_(const std::string &command);
   void process_queue_();
+  void transmit_command_(const std::string &command);
   void mark_receiver_online_();
   void check_receiver_timeout_();
   void process_front_tone_(const std::string& value);
@@ -621,6 +622,7 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   std::deque<std::string> command_queue_;
   uint32_t last_command_ms_{0};
   static constexpr uint32_t COMMAND_GAP_MS = 100;
+  static constexpr size_t MAX_COMMAND_QUEUE_SIZE = 64;
   static constexpr size_t MAX_FRAME_LENGTH = 160;
   uint32_t last_valid_frame_ms_{0};
   bool receiver_online_{false};
