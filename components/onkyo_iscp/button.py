@@ -31,6 +31,10 @@ from .const import (
     CONF_DISPLAY_AUDIO_FORMAT,
     CONF_DISPLAY_MODE_NEXT,
     CONF_DISPLAY_VIDEO_FORMAT,
+    CONF_SPEAKER_LEVEL_TEST,
+    CONF_SPEAKER_LEVEL_NEXT,
+    CONF_SPEAKER_LEVEL_UP,
+    CONF_SPEAKER_LEVEL_DOWN,
 )
 
 OnkyoVolumeUpButton = onkyo_iscp_ns.class_("OnkyoVolumeUpButton", button.Button)
@@ -59,6 +63,10 @@ OnkyoOsdVideoButton = onkyo_iscp_ns.class_("OnkyoOsdVideoButton", button.Button)
 OnkyoDisplayAudioFormatButton = onkyo_iscp_ns.class_("OnkyoDisplayAudioFormatButton", button.Button)
 OnkyoDisplayVideoFormatButton = onkyo_iscp_ns.class_("OnkyoDisplayVideoFormatButton", button.Button)
 OnkyoDisplayModeNextButton = onkyo_iscp_ns.class_("OnkyoDisplayModeNextButton", button.Button)
+OnkyoSpeakerLevelTestButton = onkyo_iscp_ns.class_("OnkyoSpeakerLevelTestButton", button.Button)
+OnkyoSpeakerLevelNextButton = onkyo_iscp_ns.class_("OnkyoSpeakerLevelNextButton", button.Button)
+OnkyoSpeakerLevelUpButton = onkyo_iscp_ns.class_("OnkyoSpeakerLevelUpButton", button.Button)
+OnkyoSpeakerLevelDownButton = onkyo_iscp_ns.class_("OnkyoSpeakerLevelDownButton", button.Button)
 
 CONFIG_SCHEMA = cv.Schema(
     {
@@ -164,6 +172,22 @@ CONFIG_SCHEMA = cv.Schema(
             OnkyoDisplayModeNextButton,
             icon="mdi:repeat",
         ),
+        cv.Optional(CONF_SPEAKER_LEVEL_TEST): button.button_schema(
+            OnkyoSpeakerLevelTestButton,
+            icon="mdi:speaker-play",
+        ),
+        cv.Optional(CONF_SPEAKER_LEVEL_NEXT): button.button_schema(
+            OnkyoSpeakerLevelNextButton,
+            icon="mdi:speaker-multiple",
+        ),
+        cv.Optional(CONF_SPEAKER_LEVEL_UP): button.button_schema(
+            OnkyoSpeakerLevelUpButton,
+            icon="mdi:plus",
+        ),
+        cv.Optional(CONF_SPEAKER_LEVEL_DOWN): button.button_schema(
+            OnkyoSpeakerLevelDownButton,
+            icon="mdi:minus",
+        ),
     }
 )
 
@@ -198,6 +222,10 @@ async def to_code(config):
         CONF_DISPLAY_AUDIO_FORMAT,
         CONF_DISPLAY_VIDEO_FORMAT,
         CONF_DISPLAY_MODE_NEXT,
+        CONF_SPEAKER_LEVEL_TEST,
+        CONF_SPEAKER_LEVEL_NEXT,
+        CONF_SPEAKER_LEVEL_UP,
+        CONF_SPEAKER_LEVEL_DOWN,
     ):
         if button_config := config.get(key):
             var = await button.new_button(button_config)

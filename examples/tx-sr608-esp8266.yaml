@@ -37,7 +37,7 @@ external_components:
   - source:
       type: git
       url: https://github.com/domhit/esphome-onkyo-iscp
-      ref: dev/v0.4.0
+      ref: dev/v0.6.0
     components:
       - onkyo_iscp
     refresh: 0s
@@ -92,9 +92,13 @@ number:
     onkyo_iscp_id: onkyo_receiver
 
     master_volume:
-      name: Lautstärke Rohwert
+      name: Master-Lautstärke absolut
       mode: slider
 
+    master_volume_relative:
+      name: Master-Lautstärke relativ
+      mode: slider
+      
     front_bass:
       name: Bass Front
       mode: slider
@@ -133,7 +137,40 @@ select:
 
     input:
       name: Eingang
-
+      sources:
+        - onkyo_name: "VCR/DVR"
+          name: "XBOX"
+    
+        - onkyo_name: "CBL/SAT"
+          name: "PS4"
+    
+        - onkyo_name: "GAME/TV"
+          name: "PS3"
+    
+        - onkyo_name: "AUX1"
+          name: "Switch"
+    
+        - onkyo_name: "PC"
+          name: "Wii"
+    
+        - onkyo_name: "BD/DVD"
+          name: "PS2"
+    
+        - onkyo_name: "TV/CD"
+          name: "XBOX360"
+    
+        - onkyo_name: "FM"
+          name: "FM"
+    
+        - onkyo_name: "AM"
+          name: "AM"
+    
+        - onkyo_name: "TUNER"
+          name: "Tuner"
+    
+        - onkyo_name: "UNIVERSAL PORT"
+          name: "Universal Port"
+          
     listening_mode:
       name: Listening Mode
 
@@ -171,6 +208,9 @@ select:
     picture_mode:
       name: Picture Mode
       disabled_by_default: true
+    
+    display_mode:
+      name: Displaymodus
       
 button:
   - platform: onkyo_iscp
@@ -256,6 +296,31 @@ button:
       name: Video-Menü
       disabled_by_default: true
       
+    display_audio_format:
+      name: Audioformat anzeigen
+
+    display_video_format:
+      name: Videoformat anzeigen
+
+    display_mode_next:
+      name: Displaymodus weiterschalten
+
+    speaker_level_test:
+      name: Lautsprecher-Testton
+      disabled_by_default: true
+
+    speaker_level_next:
+      name: Nächster Lautsprecher
+      disabled_by_default: true
+
+    speaker_level_up:
+      name: Lautsprecherpegel erhöhen
+      disabled_by_default: true
+
+    speaker_level_down:
+      name: Lautsprecherpegel verringern
+      disabled_by_default: true
+      
 text_sensor:
   - platform: onkyo_iscp
     onkyo_iscp_id: onkyo_receiver
@@ -264,8 +329,8 @@ text_sensor:
       name: Audio-Signalinformation
 
     video_information:
-      name: Video-Signalinformation
-
+      name: Video-Signalinformation   
+      
     last_frame:
       name: Letzter ISCP-Frame
     
