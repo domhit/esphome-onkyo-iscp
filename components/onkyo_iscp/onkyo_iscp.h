@@ -519,6 +519,7 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   void set_late_night(const std::string& mode);
   void set_dynamic_volume(const std::string& mode);
   void set_input(const std::string& input);
+  void add_input_source(const std::string &code, const std::string &name);
   void set_audio_selector(const std::string& selector);
   void set_speaker_layout(const std::string& layout);
   void set_listening_mode(const std::string& listening_mode);
@@ -625,6 +626,8 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   static std::string normalize_frame_(std::string frame);
   static std::string input_code_to_name_(const std::string& code);
   static std::string input_name_to_code_(const std::string& name);
+  std::string configured_input_code_to_name_(const std::string &code) const;
+  std::string configured_input_name_to_code_(const std::string &name) const;
   static std::string listening_mode_code_to_name_(const std::string& code);
   static std::string listening_mode_name_to_code_(const std::string& name);
   static std::string tone_value_to_code_(float value);
@@ -656,6 +659,8 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   static std::string display_mode_code_to_name_( const std::string &code);
   static std::string display_mode_name_to_code_( const std::string &name);
 
+  struct InputSource { std::string code; std::string name; };
+  std::vector<InputSource> input_sources_;
   std::string rx_buffer_;
   std::deque<std::string> command_queue_;
   uint32_t last_command_ms_{0};

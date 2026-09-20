@@ -676,8 +676,9 @@ void OnkyoIscp::process_center_level_(const std::string& value) {
     center_level_number_->publish_state(level);
   }
 }
+void OnkyoIscp::add_input_source(const std::string &code, const std::string &name) { input_sources_.push_back({code, name}); }
 void OnkyoIscp::set_input(const std::string& input) {
-  const std::string code = input_name_to_code_(input);
+  const std::string code = configured_input_name_to_code_(input);
   if (code.empty()) {
     ESP_LOGW(TAG, "Unknown input option: %s", input.c_str());
     return;
@@ -1129,8 +1130,9 @@ bool OnkyoIscp::process_core_command_(const std::string &command, const std::str
     else tuner_band_ = TunerBand::UNKNOWN;
 
     if (input_select_ != nullptr) {
-      const std::string name = input_code_to_name_(value);
+      const std::string name = configured_input_code_to_name_(value);
       if (!name.empty()) input_select_->publish_state(name);
+      else if (!input_code_to_name_(value).empty()) ESP_LOGD(TAG, "Input code %s is known but not enabled", value.c_str());
       else ESP_LOGW(TAG, "Unknown input code: %s", value.c_str());
     }
     if (value == "24" || value == "25" || value == "26") this->query_tuner();
@@ -1400,6 +1402,8 @@ std::string OnkyoIscp::input_code_to_name_(const std::string &code) {
 std::string OnkyoIscp::input_name_to_code_(const std::string &name) {
   return find_code(INPUT_MAP, name);
 }
+std::string OnkyoIscp::configured_input_code_to_name_(const std::string &code) const { for (const auto &source : input_sources_) if (source.code == code) return source.name; return {}; }
+std::string OnkyoIscp::configured_input_name_to_code_(const std::string &name) const { for (const auto &source : input_sources_) if (source.name == name) return source.code; return {}; }
 std::string OnkyoIscp::listening_mode_code_to_name_(const std::string &code) {
   return find_name(LISTENING_MODE_MAP, code);
 }
