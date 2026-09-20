@@ -12,6 +12,7 @@ namespace esphome::onkyo_iscp_web {
 class OnkyoIscpWeb : public Component, public onkyo_iscp::OnkyoIscpStateListener {
  public:
   void setup() override;
+  void loop() override;
   void dump_config() override;
   float get_setup_priority() const override { return setup_priority::AFTER_WIFI; }
 
@@ -33,6 +34,8 @@ class OnkyoIscpWeb : public Component, public onkyo_iscp::OnkyoIscpStateListener
   uint16_t mute_control_id_{0};
   uint16_t volume_control_id_{0};
   uint16_t volume_label_id_{0};
+  uint32_t sync_due_ms_{0};
+  bool initial_sync_pending_{false};
 };
 
 }  // namespace esphome::onkyo_iscp_web

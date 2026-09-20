@@ -37,11 +37,22 @@ void OnkyoIscpWeb::setup() {
       0,
       100
   );
+  ESPUI.captivePortal = false;
   ESPUI.begin(title_.c_str());
   if (parent_ != nullptr) {
     parent_->set_state_listener(this);
-    parent_->query_all();
+    sync_due_ms_ = millis() + 3000;
+    initial_sync_pending_ = true;
   }
+}
+
+void OnkyoIscpWeb::loop() {
+  if (!initial_sync_pending_ || parent_ == nullptr) return;
+  if (static_cast<int32_t>(millis() - sync_due_ms_) < 0) return;
+
+  initial_sync_pending_ = false;
+  ESP_LOGD(TAG, "Starting delayed Onkyo state synchronization");
+  parent_->query_all();
 }
 
 void OnkyoIscpWeb::dump_config() {
