@@ -5,14 +5,13 @@
 The ESP8266 communicates directly with UART test points on the TX-SR608 mainboard.
 
 <p align="center">
-    images/tx-sr608-uart-testpoints.png
+    <img
+        src="images/tx-sr608-uart-testpoints.png"
+        alt="TX-SR608 UART test points used for the ESP8266 connection."
+        width="700">
     <br>
-    <em>
-        TX-SR608 UART test points used for the ESP8266 connection.<br>
-        Cross wiring: FLRXD → ESP8266 TX (GPIO1), FLTXD → ESP8266 RX (GPIO3), GND → GND.
-    </em>
-</p>
-
+    <em>   Cross wiring: FLRXD → ESP8266 TX (GPIO1), FLTXD → ESP8266 RX (GPIO3), GND → GND.
+    
 ## UART Wiring
 
 Connect the receiver test points to the ESP8266 hardware UART:
