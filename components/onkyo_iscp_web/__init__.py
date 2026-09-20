@@ -31,6 +31,7 @@ async def to_code(config):
 
     cg.add_library("LittleFS", None)
     cg.add_library("ArduinoOTA", None)
+    cg.add_library("esphome/ESPAsyncTCP-esphome", "2.0.0")
     cg.add_library(
         name="ESPUI",
         repository="https://github.com/s00500/ESPUI.git",
