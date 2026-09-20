@@ -463,6 +463,34 @@ class OnkyoDisplayModeNextButton : public button::Button {
   OnkyoIscp *parent_{nullptr};
 };
 
+class OnkyoSpeakerLevelTestButton : public button::Button {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+ protected:
+  void press_action() override;
+  OnkyoIscp *parent_{nullptr};
+};
+class OnkyoSpeakerLevelNextButton : public button::Button {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+ protected:
+  void press_action() override;
+  OnkyoIscp *parent_{nullptr};
+};
+class OnkyoSpeakerLevelUpButton : public button::Button {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+ protected:
+  void press_action() override;
+  OnkyoIscp *parent_{nullptr};
+};
+class OnkyoSpeakerLevelDownButton : public button::Button {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+ protected:
+  void press_action() override;
+  OnkyoIscp *parent_{nullptr};
+};
 //Main ####################################################################################
 class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
  public:
@@ -517,6 +545,7 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   void display_audio_format();
   void display_video_format();
   void display_mode_next();
+  void send_speaker_level_calibration_command(const std::string &command);
 
   void set_connected_binary_sensor(binary_sensor::BinarySensor* entity) { connected_binary_sensor_ = entity; }
   void set_power_switch(OnkyoPowerSwitch* entity) { power_switch_ = entity; }

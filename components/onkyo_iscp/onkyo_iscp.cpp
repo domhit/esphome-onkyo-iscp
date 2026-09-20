@@ -1055,6 +1055,17 @@ void OnkyoIscp::display_mode_next() {
   this->enqueue_command_("DIFTG");
   this->enqueue_command_("DIFQSTN");
 }
+void OnkyoIscp::send_speaker_level_calibration_command(const std::string &command) {
+  if (!receiver_online_) {
+    ESP_LOGW(TAG, "Cannot send speaker level calibration command while receiver is offline");
+    return;
+  }
+  if (command != "TEST" && command != "CHSEL" && command != "UP" && command != "DOWN") {
+    ESP_LOGW(TAG, "Invalid speaker level calibration command: %s", command.c_str());
+    return;
+  }
+  this->enqueue_command_("SLC" + command);
+}
 // Dispatcher ##########################################################################################
 void OnkyoIscp::process_command_(const std::string &command, const std::string &value) {
   if (this->process_core_command_(command, value)) return;
@@ -1814,5 +1825,17 @@ void OnkyoDisplayModeNextButton::press_action() {
   if (parent_ != nullptr) {
     parent_->display_mode_next();
   }
+}
+void OnkyoSpeakerLevelTestButton::press_action() {
+  if (parent_ != nullptr) parent_->send_speaker_level_calibration_command("TEST");
+}
+void OnkyoSpeakerLevelNextButton::press_action() {
+  if (parent_ != nullptr) parent_->send_speaker_level_calibration_command("CHSEL");
+}
+void OnkyoSpeakerLevelUpButton::press_action() {
+  if (parent_ != nullptr) parent_->send_speaker_level_calibration_command("UP");
+}
+void OnkyoSpeakerLevelDownButton::press_action() {
+  if (parent_ != nullptr) parent_->send_speaker_level_calibration_command("DOWN");
 }
 }  // namespace esphome::onkyo_iscp
