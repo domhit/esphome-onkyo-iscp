@@ -29,4 +29,7 @@ async def to_code(config):
     cg.add(var.set_parent(parent))
     cg.add(var.set_title(config[CONF_TITLE]))
 
-    cg.add_library("s00500/ESPUI", "2.2.4")
+    cg.add_library(
+        "ESPUI",
+        "https://github.com/s00500/ESPUI.git#1eb5e2ffc4eebf3a854247fd5208a5b88edc051e",
+)
