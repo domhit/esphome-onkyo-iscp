@@ -172,6 +172,7 @@ void OnkyoIscp::mark_receiver_online_() {
   if (connected_binary_sensor_ != nullptr) {
     connected_binary_sensor_->publish_state(true);
   }
+  if (state_listener_ != nullptr) state_listener_->on_receiver_online_state(true);
   this->query_all();
 }
 void OnkyoIscp::check_receiver_timeout_() {
@@ -193,6 +194,7 @@ void OnkyoIscp::check_receiver_timeout_() {
   if (connected_binary_sensor_ != nullptr) {
     connected_binary_sensor_->publish_state(false);
   }
+  if (state_listener_ != nullptr) state_listener_->on_receiver_online_state(false);
 }
 void OnkyoIscp::send_command(const std::string &command) {
   this->enqueue_command_(command);
@@ -681,6 +683,17 @@ void OnkyoIscp::process_center_level_(const std::string& value) {
 void OnkyoIscp::add_input_source(const std::string &code, const std::string &name) {
   input_sources_.push_back({code, name});
 }
+const std::string &OnkyoIscp::get_input_source_name(size_t index) const {
+  static const std::string EMPTY;
+  return index < input_sources_.size() ? input_sources_[index].name : EMPTY;
+}
+size_t OnkyoIscp::get_listening_mode_count() const {
+  return sizeof(LISTENING_MODE_MAP) / sizeof(LISTENING_MODE_MAP[0]);
+}
+const char *OnkyoIscp::get_listening_mode_name(size_t index) const {
+  if (index >= this->get_listening_mode_count()) return "";
+  return LISTENING_MODE_MAP[index].name;
+}
 void OnkyoIscp::set_input(const std::string& input) {
   const std::string code = configured_input_name_to_code_(input);
   if (code.empty()) {
@@ -1141,12 +1154,14 @@ bool OnkyoIscp::process_core_command_(const std::string &command, const std::str
     else if (value == "25") tuner_band_ = TunerBand::AM;
     else tuner_band_ = TunerBand::UNKNOWN;
 
-    if (input_select_ != nullptr) {
-      const std::string name = configured_input_code_to_name_(value);
-      if (!name.empty()) input_select_->publish_state(name);
-      else if (!input_code_to_name_(value).empty())
-        ESP_LOGD(TAG, "Input code %s is known but not enabled", value.c_str());
-      else ESP_LOGW(TAG, "Unknown input code: %s", value.c_str());
+    const std::string name = configured_input_code_to_name_(value);
+    if (!name.empty()) {
+      if (input_select_ != nullptr) input_select_->publish_state(name);
+      if (state_listener_ != nullptr) state_listener_->on_input_state(name);
+    } else if (!input_code_to_name_(value).empty()) {
+      ESP_LOGD(TAG, "Input code %s is known but not enabled", value.c_str());
+    } else {
+      ESP_LOGW(TAG, "Unknown input code: %s", value.c_str());
     }
     if (value == "24" || value == "25" || value == "26") this->query_tuner();
     return true;
@@ -1196,6 +1211,7 @@ bool OnkyoIscp::process_audio_command_(const std::string &command, const std::st
     const std::string name = listening_mode_code_to_name_(value);
     if (!name.empty()) {
       if (listening_mode_select_ != nullptr) listening_mode_select_->publish_state(name);
+      if (state_listener_ != nullptr) state_listener_->on_listening_mode_state(name);
     } else ESP_LOGW(TAG, "Unknown listening mode code: %s", value.c_str());
     return true;
   }

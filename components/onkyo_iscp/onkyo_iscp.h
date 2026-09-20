@@ -20,9 +20,12 @@ class OnkyoIscp;
 
 class OnkyoIscpStateListener {
  public:
+  virtual void on_receiver_online_state(bool state) = 0;
   virtual void on_power_state(bool state) = 0;
   virtual void on_mute_state(bool state) = 0;
   virtual void on_volume_state(float absolute, float relative) = 0;
+  virtual void on_input_state(const std::string &input) = 0;
+  virtual void on_listening_mode_state(const std::string &mode) = 0;
 
  protected:
   ~OnkyoIscpStateListener() = default;
@@ -512,6 +515,7 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   void send_command(const std::string& command);
   void query_all();
   void set_state_listener(OnkyoIscpStateListener *listener) { state_listener_ = listener; }
+  bool is_receiver_online() const { return receiver_online_; }
   void query_video_information();
   void set_power(bool state);
   void set_mute(bool state);
@@ -531,6 +535,10 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   void set_dynamic_volume(const std::string& mode);
   void set_input(const std::string& input);
   void add_input_source(const std::string &code, const std::string &name);
+  size_t get_input_source_count() const { return input_sources_.size(); }
+  const std::string &get_input_source_name(size_t index) const;
+  size_t get_listening_mode_count() const;
+  const char *get_listening_mode_name(size_t index) const;
   void set_audio_selector(const std::string& selector);
   void set_speaker_layout(const std::string& layout);
   void set_listening_mode(const std::string& listening_mode);
