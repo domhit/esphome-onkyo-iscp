@@ -19,8 +19,13 @@ class OnkyoIscpWeb : public Component {
   void set_title(const std::string &title) { title_ = title; }
 
  protected:
+  void handle_power_(int type);
+  void handle_mute_(int type);
+
   onkyo_iscp::OnkyoIscp *parent_{nullptr};
   std::string title_{"Onkyo TX-SR608"};
+  uint16_t power_control_id_{0};
+  uint16_t mute_control_id_{0};
 };
 
 }  // namespace esphome::onkyo_iscp_web
