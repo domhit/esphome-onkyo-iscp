@@ -4,9 +4,14 @@
 
 The ESP8266 communicates directly with UART test points on the TX-SR608 mainboard.
 
-images/tx-sr608-uart-testpoints.png
-
-*TX-SR608 UART test points. Cross wiring: `FLRXD → ESP8266 TX (GPIO1)`, `FLTXD → ESP8266 RX (GPIO3)`, and `GND → GND`.*
+<p align="center">
+    images/tx-sr608-uart-testpoints.png
+    <br>
+    <em>
+        TX-SR608 UART test points used for the ESP8266 connection.<br>
+        Cross wiring: FLRXD → ESP8266 TX (GPIO1), FLTXD → ESP8266 RX (GPIO3), GND → GND.
+    </em>
+</p>
 
 ## UART Wiring
 
@@ -22,14 +27,14 @@ The signal names are shown from the receiver's perspective:
 - `FLTXD` is the receiver TX signal and therefore connects to the ESP8266 RX pin.
 - `GND` must be shared between the receiver and ESP8266.
 
-In other words, the UART data lines are cross-connected:
+The UART data lines are therefore cross-connected:
 
 ```text
-TX-SR608                    ESP8266 / Wemos D1 Mini
+TX-SR608                   ESP8266 / Wemos D1 Mini
 
-FLRXD  <------------------- GPIO1 / TX
-FLTXD  -------------------> GPIO3 / RX
-GND     ------------------- GND
+FLRXD  <------------------ GPIO1 / TX
+FLTXD  ------------------> GPIO3 / RX
+GND     ------------------ GND
 ```
 
 ## Serial Configuration
@@ -37,10 +42,22 @@ GND     ------------------- GND
 The UART connection uses:
 
 ```text
-Baud rate:  9600
-Data bits:  8
-Parity:     None
-Stop bits:  1
+Baud rate:    9600
+Data bits:    8
+Parity:       None
+Stop bits:    1
+Flow control: None
+```
+
+## Serial Configuration
+
+The UART connection uses:
+
+```text
+Baud rate:    9600
+Data bits:    8
+Parity:       None
+Stop bits:    1
 Flow control: None
 ```
 
