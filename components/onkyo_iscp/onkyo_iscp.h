@@ -76,6 +76,13 @@ class OnkyoVolumeNumber : public number::Number {
   void control(float value) override;
   OnkyoIscp* parent_{nullptr};
 };
+class OnkyoRelativeVolumeNumber : public number::Number {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+ protected:
+  void control(float value) override;
+  OnkyoIscp *parent_{nullptr};
+};
 class OnkyoFrontBassNumber : public number::Number {
  public:
   void set_parent(OnkyoIscp* parent) { parent_ = parent; }
@@ -470,6 +477,7 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   void set_power(bool state);
   void set_mute(bool state);
   void set_volume(float raw_value);
+  void set_relative_volume(float db_value);
   void set_front_bass(float value);
   void set_front_treble(float value);
   void set_subwoofer_level(float value);
@@ -522,6 +530,7 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   void set_late_night_select(OnkyoLateNightSelect* entity) { late_night_select_ = entity; }
   void set_dynamic_volume_select(OnkyoDynamicVolumeSelect* entity) { dynamic_volume_select_ = entity; }
   void set_volume_number(OnkyoVolumeNumber* entity) { volume_number_ = entity; }
+  void set_relative_volume_number(OnkyoRelativeVolumeNumber *entity) { relative_volume_number_ = entity; }
   void set_front_bass_number(OnkyoFrontBassNumber* entity) { front_bass_number_ = entity; }
   void set_front_treble_number(OnkyoFrontTrebleNumber* entity) { front_treble_number_ = entity; }
   void set_subwoofer_level_number(OnkyoSubwooferLevelNumber* entity) { subwoofer_level_number_ = entity; }
@@ -641,6 +650,7 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   OnkyoMusicOptimizerSwitch* music_optimizer_switch_{nullptr};
   OnkyoDynamicVolumeSelect* dynamic_volume_select_{nullptr};
   OnkyoVolumeNumber* volume_number_{nullptr};
+  OnkyoRelativeVolumeNumber *relative_volume_number_{nullptr};
   OnkyoFrontBassNumber* front_bass_number_{nullptr};
   OnkyoFrontTrebleNumber* front_treble_number_{nullptr};
   OnkyoSubwooferLevelNumber* subwoofer_level_number_{nullptr};

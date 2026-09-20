@@ -589,10 +589,14 @@ void OnkyoIscp::set_center_level(float value) {
   this->enqueue_command_("CTLQSTN");
 }
 void OnkyoIscp::set_volume(float raw_value) {
-  int value = std::max(0, std::min(100, static_cast<int>(raw_value + 0.5f)));
+  const int raw = std::max(0, std::min(100, static_cast<int>(std::lround(raw_value))));
   char command[8];
-  std::snprintf(command, sizeof(command), "MVL%02X", value);
+  std::snprintf(command, sizeof(command), "MVL%02X", raw);
   this->send_command(command);
+}
+void OnkyoIscp::set_relative_volume(float db_value) {
+  const int db = std::max(-82, std::min(18, static_cast<int>(std::lround(db_value))));
+  this->set_volume(static_cast<float>(db + 82));
 }
 void OnkyoIscp::process_front_tone_(const std::string& value) {
   bool parsed_any_value = false;
@@ -1104,6 +1108,7 @@ bool OnkyoIscp::process_core_command_(const std::string &command, const std::str
       return true;
     }
     if (volume_number_ != nullptr) volume_number_->publish_state(static_cast<float>(raw));
+    if (relative_volume_number_ != nullptr) relative_volume_number_->publish_state(static_cast<float>(raw - 82));
     return true;
   }
 
@@ -1583,6 +1588,9 @@ void OnkyoMuteSwitch::write_state(bool state) {
 }
 void OnkyoVolumeNumber::control(float value) {
   if (parent_) parent_->set_volume(value);
+}
+void OnkyoRelativeVolumeNumber::control(float value) {
+  if (parent_) parent_->set_relative_volume(value);
 }
 void OnkyoFrontBassNumber::control(float value) {
   if (parent_ != nullptr) {

@@ -10,6 +10,7 @@ from .const import (
     CONF_FRONT_BASS,
     CONF_FRONT_TREBLE,
     CONF_MASTER_VOLUME,
+    CONF_MASTER_VOLUME_RELATIVE,
     CONF_ONKYO_ISCP_ID,
     CONF_SLEEP_TIMER,
     CONF_SUBWOOFER_LEVEL,
@@ -17,6 +18,9 @@ from .const import (
 )
 
 OnkyoVolumeNumber = onkyo_iscp_ns.class_("OnkyoVolumeNumber", number.Number)
+OnkyoRelativeVolumeNumber = onkyo_iscp_ns.class_(
+    "OnkyoRelativeVolumeNumber", number.Number
+)
 OnkyoFrontBassNumber = onkyo_iscp_ns.class_("OnkyoFrontBassNumber", number.Number)
 OnkyoFrontTrebleNumber = onkyo_iscp_ns.class_(
     "OnkyoFrontTrebleNumber",
@@ -52,6 +56,11 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_MASTER_VOLUME): number.number_schema(
             OnkyoVolumeNumber,
             icon="mdi:volume-high",
+        ),
+        cv.Optional(CONF_MASTER_VOLUME_RELATIVE): number.number_schema(
+            OnkyoRelativeVolumeNumber,
+            icon="mdi:volume-high",
+            unit_of_measurement="dB",
         ),
         cv.Optional(CONF_FRONT_BASS): number.number_schema(
             OnkyoFrontBassNumber,
@@ -102,6 +111,12 @@ async def to_code(config):
         var = await number.new_number(volume_config, min_value=0, max_value=100, step=1)
         cg.add(var.set_parent(parent))
         cg.add(parent.set_volume_number(var))
+    if relative_volume_config := config.get(CONF_MASTER_VOLUME_RELATIVE):
+        var = await number.new_number(
+            relative_volume_config, min_value=-82, max_value=18, step=1
+        )
+        cg.add(var.set_parent(parent))
+        cg.add(parent.set_relative_volume_number(var))
 
     if bass_config := config.get(CONF_FRONT_BASS):
         var = await number.new_number(
