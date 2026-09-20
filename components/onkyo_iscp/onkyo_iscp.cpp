@@ -1088,6 +1088,7 @@ bool OnkyoIscp::process_core_command_(const std::string &command, const std::str
       const bool power_changed = !receiver_power_on_;
       receiver_power_on_ = true;
       if (power_switch_ != nullptr) power_switch_->publish_state(true);
+      if (state_listener_ != nullptr) state_listener_->on_power_state(true);
       if (power_changed) {
         ESP_LOGI(TAG, "Receiver powered on");
         const uint32_t now = millis();
@@ -1100,6 +1101,7 @@ bool OnkyoIscp::process_core_command_(const std::string &command, const std::str
       if (receiver_power_on_) ESP_LOGI(TAG, "Receiver entered standby");
       receiver_power_on_ = false;
       if (power_switch_ != nullptr) power_switch_->publish_state(false);
+      if (state_listener_ != nullptr) state_listener_->on_power_state(false);
     } else {
       ESP_LOGW(TAG, "Unknown power state: %s", value.c_str());
     }
@@ -1114,6 +1116,8 @@ bool OnkyoIscp::process_core_command_(const std::string &command, const std::str
     } else {
       ESP_LOGW(TAG, "Unknown mute state: %s", value.c_str());
     }
+    if (state_listener_ != nullptr && (value == "00" || value == "01"))
+      state_listener_->on_mute_state(value == "01");
     return true;
   }
 
@@ -1127,6 +1131,8 @@ bool OnkyoIscp::process_core_command_(const std::string &command, const std::str
     if (volume_number_ != nullptr) volume_number_->publish_state(static_cast<float>(raw));
     if (relative_volume_number_ != nullptr)
       relative_volume_number_->publish_state(static_cast<float>(raw - 82));
+    if (state_listener_ != nullptr)
+      state_listener_->on_volume_state(static_cast<float>(raw), static_cast<float>(raw - 82));
     return true;
   }
 

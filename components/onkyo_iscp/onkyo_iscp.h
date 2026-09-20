@@ -18,6 +18,16 @@ namespace esphome::onkyo_iscp {
 
 class OnkyoIscp;
 
+class OnkyoIscpStateListener {
+ public:
+  virtual void on_power_state(bool state) = 0;
+  virtual void on_mute_state(bool state) = 0;
+  virtual void on_volume_state(float absolute, float relative) = 0;
+
+ protected:
+  ~OnkyoIscpStateListener() = default;
+};
+
 // Switches
 class OnkyoPowerSwitch : public switch_::Switch {
  public:
@@ -501,6 +511,7 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
 
   void send_command(const std::string& command);
   void query_all();
+  void set_state_listener(OnkyoIscpStateListener *listener) { state_listener_ = listener; }
   void query_video_information();
   void set_power(bool state);
   void set_mute(bool state);
@@ -680,6 +691,7 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   static constexpr uint32_t RECEIVER_TIMEOUT_MS = 75000;
   static bool is_valid_ascii_frame_(const std::string& frame);
   uint8_t current_tuner_preset_{0};
+  OnkyoIscpStateListener *state_listener_{nullptr};
 
 
   OnkyoPowerSwitch* power_switch_{nullptr};

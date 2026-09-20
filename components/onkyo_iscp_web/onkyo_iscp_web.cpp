@@ -1,5 +1,7 @@
 #include "onkyo_iscp_web.h"
 
+#include <cstdio>
+
 #include "esphome/core/log.h"
 
 namespace esphome::onkyo_iscp_web {
@@ -26,7 +28,20 @@ void OnkyoIscpWeb::setup() {
       ControlColor::Alizarin,
       false
   );
+  volume_label_id_ = ESPUI.label("Volume", ControlColor::Turquoise, "0 / -82 dB");
+  volume_control_id_ = ESPUI.slider(
+      "Master Volume",
+      [this](Control *sender, int type) { this->handle_volume_(sender, type); },
+      ControlColor::Peterriver,
+      0,
+      0,
+      100
+  );
   ESPUI.begin(title_.c_str());
+  if (parent_ != nullptr) {
+    parent_->set_state_listener(this);
+    parent_->query_all();
+  }
 }
 
 void OnkyoIscpWeb::dump_config() {
@@ -35,6 +50,22 @@ void OnkyoIscpWeb::dump_config() {
   ESP_LOGCONFIG(TAG, "  Backend: %s", parent_ != nullptr ? "configured" : "missing");
   ESP_LOGCONFIG(TAG, "  Power control ID: %u", power_control_id_);
   ESP_LOGCONFIG(TAG, "  Mute control ID: %u", mute_control_id_);
+  ESP_LOGCONFIG(TAG, "  Volume control ID: %u", volume_control_id_);
+}
+
+void OnkyoIscpWeb::on_power_state(bool state) {
+  ESPUI.updateSwitcher(power_control_id_, state);
+}
+
+void OnkyoIscpWeb::on_mute_state(bool state) {
+  ESPUI.updateSwitcher(mute_control_id_, state);
+}
+
+void OnkyoIscpWeb::on_volume_state(float absolute, float relative) {
+  ESPUI.updateSlider(volume_control_id_, static_cast<int>(absolute));
+  char label[24];
+  std::snprintf(label, sizeof(label), "%.0f / %+.0f dB", absolute, relative);
+  ESPUI.updateLabel(volume_label_id_, label);
 }
 
 void OnkyoIscpWeb::handle_power_(int type) {
@@ -59,6 +90,17 @@ void OnkyoIscpWeb::handle_mute_(int type) {
   const bool state = type == S_ACTIVE;
   ESP_LOGD(TAG, "ESPUI mute request: %s", state ? "ON" : "OFF");
   parent_->set_mute(state);
+}
+
+void OnkyoIscpWeb::handle_volume_(Control *sender, int type) {
+  if (parent_ == nullptr) {
+    ESP_LOGW(TAG, "Cannot change volume because the Onkyo backend is missing");
+    return;
+  }
+  if (type != SL_VALUE) return;
+  const int value = sender->value.toInt();
+  ESP_LOGD(TAG, "ESPUI volume request: %d", value);
+  parent_->set_volume(static_cast<float>(value));
 }
 
 }  // namespace esphome::onkyo_iscp_web
