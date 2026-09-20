@@ -225,5 +225,11 @@ The following features are intentionally outside the current roadmap and may be 
 - Extended speaker setup
 - Additional model-specific ISCP commands
 - WebUI
-
+  - A standalone browser-based receiver remote was evaluated using ESPUI
+    on the ESP8266.
+  - The proof of concept was functional, but page initialization and
+    reloads could trigger Soft WDT resets.
+  - ESPUI is therefore not enabled for the ESP8266 build.
+  - A future ESP32-based or externally hosted web interface may reuse the
+    existing backend and command queue.
 Zone-related notifications may still be recognized to prevent them from appearing as unknown frames, even when full zone control is not implemented.
