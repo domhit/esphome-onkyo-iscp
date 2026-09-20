@@ -589,13 +589,15 @@ void OnkyoIscp::set_center_level(float value) {
   this->enqueue_command_("CTLQSTN");
 }
 void OnkyoIscp::set_volume(float raw_value) {
-  const int raw = std::max(0, std::min(100, static_cast<int>(std::lround(raw_value))));
+  const int raw =
+      std::max(0, std::min(100, static_cast<int>(std::lround(raw_value))));
   char command[8];
   std::snprintf(command, sizeof(command), "MVL%02X", raw);
   this->send_command(command);
 }
 void OnkyoIscp::set_relative_volume(float db_value) {
-  const int db = std::max(-82, std::min(18, static_cast<int>(std::lround(db_value))));
+  const int db =
+      std::max(-82, std::min(18, static_cast<int>(std::lround(db_value))));
   this->set_volume(static_cast<float>(db + 82));
 }
 void OnkyoIscp::process_front_tone_(const std::string& value) {
@@ -676,7 +678,9 @@ void OnkyoIscp::process_center_level_(const std::string& value) {
     center_level_number_->publish_state(level);
   }
 }
-void OnkyoIscp::add_input_source(const std::string &code, const std::string &name) { input_sources_.push_back({code, name}); }
+void OnkyoIscp::add_input_source(const std::string &code, const std::string &name) {
+  input_sources_.push_back({code, name});
+}
 void OnkyoIscp::set_input(const std::string& input) {
   const std::string code = configured_input_name_to_code_(input);
   if (code.empty()) {
@@ -1061,7 +1065,8 @@ void OnkyoIscp::send_speaker_level_calibration_command(const std::string &comman
     ESP_LOGW(TAG, "Cannot send speaker level calibration command while receiver is offline");
     return;
   }
-  if (command != "TEST" && command != "CHSEL" && command != "UP" && command != "DOWN") {
+  if (command != "TEST" && command != "CHSEL" && command != "UP" &&
+      command != "DOWN") {
     ESP_LOGW(TAG, "Invalid speaker level calibration command: %s", command.c_str());
     return;
   }
@@ -1120,7 +1125,8 @@ bool OnkyoIscp::process_core_command_(const std::string &command, const std::str
       return true;
     }
     if (volume_number_ != nullptr) volume_number_->publish_state(static_cast<float>(raw));
-    if (relative_volume_number_ != nullptr) relative_volume_number_->publish_state(static_cast<float>(raw - 82));
+    if (relative_volume_number_ != nullptr)
+      relative_volume_number_->publish_state(static_cast<float>(raw - 82));
     return true;
   }
 
@@ -1132,7 +1138,8 @@ bool OnkyoIscp::process_core_command_(const std::string &command, const std::str
     if (input_select_ != nullptr) {
       const std::string name = configured_input_code_to_name_(value);
       if (!name.empty()) input_select_->publish_state(name);
-      else if (!input_code_to_name_(value).empty()) ESP_LOGD(TAG, "Input code %s is known but not enabled", value.c_str());
+      else if (!input_code_to_name_(value).empty())
+        ESP_LOGD(TAG, "Input code %s is known but not enabled", value.c_str());
       else ESP_LOGW(TAG, "Unknown input code: %s", value.c_str());
     }
     if (value == "24" || value == "25" || value == "26") this->query_tuner();
@@ -1399,11 +1406,18 @@ std::string OnkyoIscp::tone_value_to_code_(float value) {
 std::string OnkyoIscp::input_code_to_name_(const std::string &code) {
   return find_name(INPUT_MAP, code);
 }
-std::string OnkyoIscp::input_name_to_code_(const std::string &name) {
-  return find_code(INPUT_MAP, name);
+std::string OnkyoIscp::configured_input_code_to_name_(const std::string &code) const {
+  for (const auto &source : input_sources_) {
+    if (source.code == code) return source.name;
+  }
+  return {};
 }
-std::string OnkyoIscp::configured_input_code_to_name_(const std::string &code) const { for (const auto &source : input_sources_) if (source.code == code) return source.name; return {}; }
-std::string OnkyoIscp::configured_input_name_to_code_(const std::string &name) const { for (const auto &source : input_sources_) if (source.name == name) return source.code; return {}; }
+std::string OnkyoIscp::configured_input_name_to_code_(const std::string &name) const {
+  for (const auto &source : input_sources_) {
+    if (source.name == name) return source.code;
+  }
+  return {};
+}
 std::string OnkyoIscp::listening_mode_code_to_name_(const std::string &code) {
   return find_name(LISTENING_MODE_MAP, code);
 }
@@ -1831,15 +1845,19 @@ void OnkyoDisplayModeNextButton::press_action() {
   }
 }
 void OnkyoSpeakerLevelTestButton::press_action() {
-  if (parent_ != nullptr) parent_->send_speaker_level_calibration_command("TEST");
+  if (parent_ != nullptr)
+    parent_->send_speaker_level_calibration_command("TEST");
 }
 void OnkyoSpeakerLevelNextButton::press_action() {
-  if (parent_ != nullptr) parent_->send_speaker_level_calibration_command("CHSEL");
+  if (parent_ != nullptr)
+    parent_->send_speaker_level_calibration_command("CHSEL");
 }
 void OnkyoSpeakerLevelUpButton::press_action() {
-  if (parent_ != nullptr) parent_->send_speaker_level_calibration_command("UP");
+  if (parent_ != nullptr)
+    parent_->send_speaker_level_calibration_command("UP");
 }
 void OnkyoSpeakerLevelDownButton::press_action() {
-  if (parent_ != nullptr) parent_->send_speaker_level_calibration_command("DOWN");
+  if (parent_ != nullptr)
+    parent_->send_speaker_level_calibration_command("DOWN");
 }
 }  // namespace esphome::onkyo_iscp

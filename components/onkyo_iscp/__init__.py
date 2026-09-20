@@ -8,7 +8,6 @@ AUTO_LOAD = ["binary_sensor", "switch", "number", "select", "button", "text_sens
 DEPENDENCIES = ["uart"]
 MULTI_CONF = True
 
-CONF_UPDATE_INTERVAL = "update_interval"
 CONF_COMMAND = "command"
 
 onkyo_iscp_ns = cg.esphome_ns.namespace("onkyo_iscp")

@@ -18,7 +18,7 @@ namespace esphome::onkyo_iscp {
 
 class OnkyoIscp;
 
-//Switches ####################################################################################
+// Switches
 class OnkyoPowerSwitch : public switch_::Switch {
  public:
   void set_parent(OnkyoIscp* parent) { parent_ = parent; }
@@ -67,7 +67,7 @@ class OnkyoMusicOptimizerSwitch : public switch_::Switch {
   void write_state(bool state) override;
   OnkyoIscp* parent_{nullptr};
 };
-//Numbers ####################################################################################
+// Numbers
 class OnkyoVolumeNumber : public number::Number {
  public:
   void set_parent(OnkyoIscp* parent) { parent_ = parent; }
@@ -147,7 +147,7 @@ class OnkyoTunerPresetNumber : public number::Number {
   void control(float value) override;
   OnkyoIscp *parent_{nullptr};
 };
-//Selects ####################################################################################
+// Selects
 class OnkyoInputSelect : public select::Select {
  public:
   void set_parent(OnkyoIscp* parent) { parent_ = parent; }
@@ -253,7 +253,7 @@ class OnkyoDisplayModeSelect : public select::Select {
   OnkyoIscp *parent_{nullptr};
 };
 
-//Buttons ####################################################################################
+// Buttons
 class OnkyoVolumeUpButton : public button::Button {
  public:
   void set_parent(OnkyoIscp* parent) { parent_ = parent; }
@@ -491,7 +491,7 @@ class OnkyoSpeakerLevelDownButton : public button::Button {
   void press_action() override;
   OnkyoIscp *parent_{nullptr};
 };
-//Main ####################################################################################
+// Main component
 class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
  public:
   void setup() override;
@@ -625,7 +625,6 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
 
   static std::string normalize_frame_(std::string frame);
   static std::string input_code_to_name_(const std::string& code);
-  static std::string input_name_to_code_(const std::string& name);
   std::string configured_input_code_to_name_(const std::string &code) const;
   std::string configured_input_name_to_code_(const std::string &name) const;
   static std::string listening_mode_code_to_name_(const std::string& code);
@@ -644,7 +643,11 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   static std::string audio_selector_name_to_code_(const std::string& name);
   static std::string speaker_layout_code_to_name_(const std::string& code);
   static std::string speaker_layout_name_to_code_(const std::string& name);
-  enum class TunerBand : uint8_t { UNKNOWN, FM, AM, };
+  enum class TunerBand : uint8_t {
+    UNKNOWN,
+    FM,
+    AM,
+  };
   TunerBand tuner_band_{TunerBand::UNKNOWN};
   static std::string pty_code_to_name_(const std::string &code);
   static std::string pty_name_to_code_(const std::string &name);
@@ -659,7 +662,10 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   static std::string display_mode_code_to_name_( const std::string &code);
   static std::string display_mode_name_to_code_( const std::string &name);
 
-  struct InputSource { std::string code; std::string name; };
+  struct InputSource {
+    std::string code;
+    std::string name;
+  };
   std::vector<InputSource> input_sources_;
   std::string rx_buffer_;
   std::deque<std::string> command_queue_;
