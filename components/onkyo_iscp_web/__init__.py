@@ -29,6 +29,7 @@ async def to_code(config):
     cg.add(var.set_parent(parent))
     cg.add(var.set_title(config[CONF_TITLE]))
 
+    cg.add_library("LittleFS", None)
     cg.add_library(
         name="ESPUI",
         repository="https://github.com/s00500/ESPUI.git",
