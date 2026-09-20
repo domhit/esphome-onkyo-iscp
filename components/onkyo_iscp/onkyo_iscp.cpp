@@ -912,78 +912,29 @@ void OnkyoIscp::process_audio_information_(const std::string &value) {
     ESP_LOGW(TAG, "Empty audio information response");
     return;
   }
-
-  const std::vector<std::string> fields =
-      split_information_fields_(value);
-
-  ESP_LOGD(
-      TAG,
-      "Parsed IFA response with %u fields",
-      static_cast<unsigned int>(fields.size())
-  );
-
-  if (audio_input_format_sensor_ != nullptr) {
-    audio_input_format_sensor_->publish_state(
-        information_field_(fields, 0)
-    );
-  }
-
-  if (audio_sample_rate_sensor_ != nullptr) {
-    audio_sample_rate_sensor_->publish_state(
-      information_field_(fields, 1)
-    );
-  }
-
-  if (audio_input_channels_sensor_ != nullptr) {
-    audio_input_channels_sensor_->publish_state(
-        information_field_(fields, 2)
-    );
-  }
-
-  if (audio_output_channels_sensor_ != nullptr) {
-    audio_output_channels_sensor_->publish_state(
-        information_field_(fields, 5)
-    );
-  }
+  const std::vector<std::string> fields = split_information_fields_(value);
+  ESP_LOGD(TAG, "Parsed IFA response with %u fields", static_cast<unsigned int>(fields.size()));
+  if (audio_source_sensor_ != nullptr) audio_source_sensor_->publish_state(information_field_(fields, 0));
+  if (audio_input_format_sensor_ != nullptr) audio_input_format_sensor_->publish_state(information_field_(fields, 1));
+  if (audio_sample_rate_sensor_ != nullptr) audio_sample_rate_sensor_->publish_state(information_field_(fields, 2));
+  if (audio_input_channels_sensor_ != nullptr) audio_input_channels_sensor_->publish_state(information_field_(fields, 3));
+  if (audio_output_format_sensor_ != nullptr) audio_output_format_sensor_->publish_state(information_field_(fields, 4));
 }
 void OnkyoIscp::process_video_information_(const std::string &value) {
   if (value.empty()) {
     ESP_LOGW(TAG, "Empty video information response");
     return;
   }
-
-  const std::vector<std::string> fields =
-      split_information_fields_(value);
-
-  ESP_LOGD(
-      TAG,
-      "Parsed IFV response with %u fields",
-      static_cast<unsigned int>(fields.size())
-  );
-
-  if (video_input_sensor_ != nullptr) {
-    video_input_sensor_->publish_state(
-        information_field_(fields, 0)
-    );
-  }
-
-  if (video_input_resolution_sensor_ != nullptr) {
-    video_input_resolution_sensor_->publish_state(
-        information_field_(fields, 1)
-    );
-  }
-
-  if (video_output_sensor_ != nullptr) {
-    video_output_sensor_->publish_state(
-        information_field_(fields, 4)
-    );
-  }
-
-  if (video_output_resolution_sensor_ != nullptr) {
-    video_output_resolution_sensor_->publish_state(
-        information_field_(fields, 5)
-    );
-  }
+  const std::vector<std::string> fields = split_information_fields_(value);
+  ESP_LOGD(TAG, "Parsed IFV response with %u fields", static_cast<unsigned int>(fields.size()));
+  if (video_input_sensor_ != nullptr) video_input_sensor_->publish_state(information_field_(fields, 0));
+  if (video_input_resolution_sensor_ != nullptr) video_input_resolution_sensor_->publish_state(information_field_(fields, 1));
+  if (video_input_color_space_sensor_ != nullptr) video_input_color_space_sensor_->publish_state(information_field_(fields, 2));
+  if (video_input_color_depth_sensor_ != nullptr) video_input_color_depth_sensor_->publish_state(information_field_(fields, 3));
+  if (video_output_sensor_ != nullptr) video_output_sensor_->publish_state(information_field_(fields, 4));
+  if (video_output_resolution_sensor_ != nullptr) video_output_resolution_sensor_->publish_state(information_field_(fields, 5));
+  if (video_output_color_space_sensor_ != nullptr) video_output_color_space_sensor_->publish_state(information_field_(fields, 6));
+  if (video_output_color_depth_sensor_ != nullptr) video_output_color_depth_sensor_->publish_state(information_field_(fields, 7));
 }
 void OnkyoIscp::send_osd_command(const std::string &command) {
   if (!receiver_online_) {

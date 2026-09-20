@@ -8,16 +8,21 @@ from .const import (
     CONF_AUDIO_INFORMATION,
     CONF_AUDIO_INPUT_CHANNELS,
     CONF_AUDIO_INPUT_FORMAT,
-    CONF_AUDIO_OUTPUT_CHANNELS,
+    CONF_AUDIO_OUTPUT_FORMAT,
     CONF_AUDIO_SAMPLE_RATE,
+    CONF_AUDIO_SOURCE,
     CONF_DISPLAY,
     CONF_LAST_FRAME,
     CONF_LAST_UNKNOWN_FRAME,
     CONF_ONKYO_ISCP_ID,
     CONF_VIDEO_INFORMATION,
     CONF_VIDEO_INPUT,
+    CONF_VIDEO_INPUT_COLOR_DEPTH,
+    CONF_VIDEO_INPUT_COLOR_SPACE,
     CONF_VIDEO_INPUT_RESOLUTION,
     CONF_VIDEO_OUTPUT,
+    CONF_VIDEO_OUTPUT_COLOR_DEPTH,
+    CONF_VIDEO_OUTPUT_COLOR_SPACE,
     CONF_VIDEO_OUTPUT_RESOLUTION,
 )
 
@@ -43,6 +48,10 @@ CONFIG_SCHEMA = cv.Schema(
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             icon="mdi:video-outline",
         ),
+        cv.Optional(CONF_AUDIO_SOURCE): text_sensor.text_sensor_schema(
+            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+            icon="mdi:audio-input-rca",
+        ),
         cv.Optional(CONF_AUDIO_INPUT_FORMAT): text_sensor.text_sensor_schema(
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             icon="mdi:audio-input-stereo-minijack",
@@ -55,9 +64,9 @@ CONFIG_SCHEMA = cv.Schema(
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             icon="mdi:surround-sound",
         ),
-        cv.Optional(CONF_AUDIO_OUTPUT_CHANNELS): text_sensor.text_sensor_schema(
+        cv.Optional(CONF_AUDIO_OUTPUT_FORMAT): text_sensor.text_sensor_schema(
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
-            icon="mdi:speaker-multiple",
+            icon="mdi:surround-sound-variant",
         ),
         cv.Optional(CONF_VIDEO_INPUT): text_sensor.text_sensor_schema(
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
@@ -67,6 +76,14 @@ CONFIG_SCHEMA = cv.Schema(
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             icon="mdi:monitor-arrow-down",
         ),
+        cv.Optional(CONF_VIDEO_INPUT_COLOR_SPACE): text_sensor.text_sensor_schema(
+            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+            icon="mdi:palette-outline",
+        ),
+        cv.Optional(CONF_VIDEO_INPUT_COLOR_DEPTH): text_sensor.text_sensor_schema(
+            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+            icon="mdi:gradient-horizontal",
+        ),
         cv.Optional(CONF_VIDEO_OUTPUT): text_sensor.text_sensor_schema(
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             icon="mdi:video-output",
@@ -74,6 +91,14 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_VIDEO_OUTPUT_RESOLUTION): text_sensor.text_sensor_schema(
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             icon="mdi:monitor-arrow-up",
+        ),
+        cv.Optional(CONF_VIDEO_OUTPUT_COLOR_SPACE): text_sensor.text_sensor_schema(
+            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+            icon="mdi:palette",
+        ),
+        cv.Optional(CONF_VIDEO_OUTPUT_COLOR_DEPTH): text_sensor.text_sensor_schema(
+            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+            icon="mdi:gradient-vertical",
         ),
     }
 )
@@ -95,6 +120,9 @@ async def to_code(config):
     if config_value := config.get(CONF_VIDEO_INFORMATION):
         var = await text_sensor.new_text_sensor(config_value)
         cg.add(parent.set_video_information_sensor(var))
+    if sensor_config := config.get(CONF_AUDIO_SOURCE):
+        var = await text_sensor.new_text_sensor(sensor_config)
+        cg.add(parent.set_audio_source_sensor(var))
     if sensor_config := config.get(CONF_AUDIO_INPUT_FORMAT):
         var = await text_sensor.new_text_sensor(sensor_config)
         cg.add(parent.set_audio_input_format_sensor(var))
@@ -104,18 +132,30 @@ async def to_code(config):
     if sensor_config := config.get(CONF_AUDIO_INPUT_CHANNELS):
         var = await text_sensor.new_text_sensor(sensor_config)
         cg.add(parent.set_audio_input_channels_sensor(var))
-    if sensor_config := config.get(CONF_AUDIO_OUTPUT_CHANNELS):
+    if sensor_config := config.get(CONF_AUDIO_OUTPUT_FORMAT):
         var = await text_sensor.new_text_sensor(sensor_config)
-        cg.add(parent.set_audio_output_channels_sensor(var))
+        cg.add(parent.set_audio_output_format_sensor(var))
     if sensor_config := config.get(CONF_VIDEO_INPUT):
         var = await text_sensor.new_text_sensor(sensor_config)
         cg.add(parent.set_video_input_sensor(var))
     if sensor_config := config.get(CONF_VIDEO_INPUT_RESOLUTION):
         var = await text_sensor.new_text_sensor(sensor_config)
         cg.add(parent.set_video_input_resolution_sensor(var))
+    if sensor_config := config.get(CONF_VIDEO_INPUT_COLOR_SPACE):
+        var = await text_sensor.new_text_sensor(sensor_config)
+        cg.add(parent.set_video_input_color_space_sensor(var))
+    if sensor_config := config.get(CONF_VIDEO_INPUT_COLOR_DEPTH):
+        var = await text_sensor.new_text_sensor(sensor_config)
+        cg.add(parent.set_video_input_color_depth_sensor(var))
     if sensor_config := config.get(CONF_VIDEO_OUTPUT):
         var = await text_sensor.new_text_sensor(sensor_config)
         cg.add(parent.set_video_output_sensor(var))
     if sensor_config := config.get(CONF_VIDEO_OUTPUT_RESOLUTION):
         var = await text_sensor.new_text_sensor(sensor_config)
         cg.add(parent.set_video_output_resolution_sensor(var))
+    if sensor_config := config.get(CONF_VIDEO_OUTPUT_COLOR_SPACE):
+        var = await text_sensor.new_text_sensor(sensor_config)
+        cg.add(parent.set_video_output_color_space_sensor(var))
+    if sensor_config := config.get(CONF_VIDEO_OUTPUT_COLOR_DEPTH):
+        var = await text_sensor.new_text_sensor(sensor_config)
+        cg.add(parent.set_video_output_color_depth_sensor(var))

@@ -571,14 +571,19 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   void set_display_sensor(text_sensor::TextSensor* entity) { display_sensor_ = entity; }
   void set_audio_information_sensor(text_sensor::TextSensor *entity) { audio_information_sensor_ = entity; }
   void set_video_information_sensor(text_sensor::TextSensor *entity) { video_information_sensor_ = entity; }
+  void set_audio_source_sensor(text_sensor::TextSensor *entity) { audio_source_sensor_ = entity; }
   void set_audio_input_format_sensor(text_sensor::TextSensor *entity) { audio_input_format_sensor_ = entity; }
   void set_audio_sample_rate_sensor(text_sensor::TextSensor *entity) { audio_sample_rate_sensor_ = entity; }
   void set_audio_input_channels_sensor(text_sensor::TextSensor *entity) { audio_input_channels_sensor_ = entity; }
-  void set_audio_output_channels_sensor(text_sensor::TextSensor *entity) { audio_output_channels_sensor_ = entity; }
+  void set_audio_output_format_sensor(text_sensor::TextSensor *entity) { audio_output_format_sensor_ = entity; }
   void set_video_input_sensor(text_sensor::TextSensor *entity) { video_input_sensor_ = entity; }
   void set_video_input_resolution_sensor(text_sensor::TextSensor *entity) { video_input_resolution_sensor_ = entity; }
+  void set_video_input_color_space_sensor(text_sensor::TextSensor *entity) { video_input_color_space_sensor_ = entity; }
+  void set_video_input_color_depth_sensor(text_sensor::TextSensor *entity) { video_input_color_depth_sensor_ = entity; }
   void set_video_output_sensor(text_sensor::TextSensor *entity) { video_output_sensor_ = entity; }
   void set_video_output_resolution_sensor(text_sensor::TextSensor *entity) { video_output_resolution_sensor_ = entity; }
+  void set_video_output_color_space_sensor(text_sensor::TextSensor *entity) { video_output_color_space_sensor_ = entity; }
+  void set_video_output_color_depth_sensor(text_sensor::TextSensor *entity) { video_output_color_depth_sensor_ = entity; }
   void set_audio_selector_select(OnkyoAudioSelectorSelect* entity) { audio_selector_select_ = entity; }
   void set_speaker_layout_select(OnkyoSpeakerLayoutSelect* entity) { speaker_layout_select_ = entity; }
   void set_listening_mode_select(OnkyoListeningModeSelect* entity) { listening_mode_select_ = entity; }
@@ -717,14 +722,19 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   binary_sensor::BinarySensor* connected_binary_sensor_{nullptr};
   text_sensor::TextSensor *audio_information_sensor_{nullptr};
   text_sensor::TextSensor *video_information_sensor_{nullptr};
+  text_sensor::TextSensor *audio_source_sensor_{nullptr};
   text_sensor::TextSensor *audio_input_format_sensor_{nullptr};
   text_sensor::TextSensor *audio_sample_rate_sensor_{nullptr};
   text_sensor::TextSensor *audio_input_channels_sensor_{nullptr};
-  text_sensor::TextSensor *audio_output_channels_sensor_{nullptr};
+  text_sensor::TextSensor *audio_output_format_sensor_{nullptr};
   text_sensor::TextSensor *video_input_sensor_{nullptr};
   text_sensor::TextSensor *video_input_resolution_sensor_{nullptr};
+  text_sensor::TextSensor *video_input_color_space_sensor_{nullptr};
+  text_sensor::TextSensor *video_input_color_depth_sensor_{nullptr};
   text_sensor::TextSensor *video_output_sensor_{nullptr};
   text_sensor::TextSensor *video_output_resolution_sensor_{nullptr};
+  text_sensor::TextSensor *video_output_color_space_sensor_{nullptr};
+  text_sensor::TextSensor *video_output_color_depth_sensor_{nullptr};
 };
 
 template <typename... Ts>
