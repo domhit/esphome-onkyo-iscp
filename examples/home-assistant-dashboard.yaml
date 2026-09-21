@@ -1,0 +1,295 @@
+# Home Assistant dashboard example for the ESPHome Onkyo ISCP component.
+#
+# Uses only built-in Home Assistant cards.
+# Replace the example entity IDs with the IDs from your installation.
+#
+# WARNING: The volume slider can cause large, fast volume changes. Check the
+# current value before moving it and increase volume carefully. A configurable
+# runtime maximum-volume limit is planned for a future release, but is not
+# implemented in v0.7.0.
+
+title: Onkyo Receiver
+views:
+  - title: Receiver
+    path: receiver
+    icon: mdi:audio-video
+    type: sections
+    max_columns: 3
+    dense_section_placement: true
+    badges:
+      - type: entity
+        entity: binary_sensor.onkyo_receiver_connected
+        name: Receiver
+        show_name: true
+        show_state: true
+        color: state
+      - type: entity
+        entity: sensor.onkyo_esp_uptime
+        name: Uptime
+        show_name: true
+        show_state: true
+    sections:
+      - type: grid
+        cards:
+          - type: heading
+            heading: Receiver
+            icon: mdi:audio-video
+            heading_style: title
+          - type: tile
+            entity: switch.onkyo_power
+            name: Power
+            icon: mdi:power
+            color: red
+            vertical: true
+            tap_action:
+              action: toggle
+            grid_options:
+              columns: 6
+              rows: 2
+          - type: tile
+            entity: switch.onkyo_mute
+            name: Mute
+            icon: mdi:volume-mute
+            color: amber
+            vertical: true
+            tap_action:
+              action: toggle
+            grid_options:
+              columns: 6
+              rows: 2
+          - type: tile
+            entity: number.onkyo_master_volume_relative
+            name: Master volume
+            icon: mdi:volume-high
+            color: blue
+            features_position: bottom
+            features:
+              - type: numeric-input
+                style: slider
+            grid_options:
+              columns: 12
+              rows: 2
+          - type: horizontal-stack
+            cards:
+              - type: button
+                entity: button.onkyo_volume_down
+                name: Volume down
+                icon: mdi:volume-minus
+                tap_action:
+                  action: perform-action
+                  perform_action: button.press
+                  target:
+                    entity_id: button.onkyo_volume_down
+              - type: button
+                entity: button.onkyo_volume_up
+                name: Volume up
+                icon: mdi:volume-plus
+                tap_action:
+                  action: perform-action
+                  perform_action: button.press
+                  target:
+                    entity_id: button.onkyo_volume_up
+          - type: tile
+            entity: select.onkyo_input
+            name: Input
+            icon: mdi:video-input-hdmi
+            features_position: bottom
+            features:
+              - type: select-options
+          - type: tile
+            entity: select.onkyo_listening_mode
+            name: Listening mode
+            icon: mdi:surround-sound
+            features_position: bottom
+            features:
+              - type: select-options
+
+      - type: grid
+        cards:
+          - type: heading
+            heading: Sound
+            icon: mdi:tune-vertical
+            heading_style: title
+          - type: entities
+            show_header_toggle: false
+            state_color: true
+            entities:
+              - entity: number.onkyo_front_bass
+                name: Front bass
+              - entity: number.onkyo_front_treble
+                name: Front treble
+              - entity: number.onkyo_center_level
+                name: Center level
+              - entity: number.onkyo_subwoofer_level
+                name: Subwoofer level
+              - type: divider
+              - entity: switch.onkyo_audyssey
+              - entity: switch.onkyo_dynamic_eq
+              - entity: select.onkyo_dynamic_volume
+              - entity: select.onkyo_late_night
+              - entity: switch.onkyo_re_eq
+              - entity: switch.onkyo_music_optimizer
+          - type: entities
+            title: Routing and display
+            show_header_toggle: false
+            entities:
+              - entity: select.onkyo_audio_selector
+              - entity: select.onkyo_speaker_layout
+              - entity: select.onkyo_display_mode
+              - entity: select.onkyo_dimmer
+              - entity: number.onkyo_sleep_timer
+
+      - type: grid
+        cards:
+          - type: heading
+            heading: Remote control
+            icon: mdi:remote
+            heading_style: title
+          - type: grid
+            columns: 3
+            square: true
+            cards:
+              - type: button
+                entity: button.onkyo_osd_menu
+                name: Menu
+                icon: mdi:cog
+              - type: button
+                entity: button.onkyo_osd_up
+                name: Up
+                icon: mdi:chevron-up
+              - type: button
+                entity: button.onkyo_osd_exit
+                name: Exit
+                icon: mdi:close
+              - type: button
+                entity: button.onkyo_osd_left
+                name: Left
+                icon: mdi:chevron-left
+              - type: button
+                entity: button.onkyo_osd_enter
+                name: OK
+                icon: mdi:checkbox-marked-circle-outline
+              - type: button
+                entity: button.onkyo_osd_right
+                name: Right
+                icon: mdi:chevron-right
+              - type: button
+                entity: button.onkyo_osd_home
+                name: Home
+                icon: mdi:home
+              - type: button
+                entity: button.onkyo_osd_down
+                name: Down
+                icon: mdi:chevron-down
+              - type: button
+                entity: button.onkyo_osd_quick
+                name: Quick
+                icon: mdi:tune-variant
+
+  - title: Signal
+    path: signal
+    icon: mdi:waveform
+    type: sections
+    max_columns: 3
+    sections:
+      - type: grid
+        cards:
+          - type: heading
+            heading: Audio signal
+            icon: mdi:waveform
+            heading_style: title
+          - type: entities
+            show_header_toggle: false
+            entities:
+              - entity: sensor.onkyo_audio_source
+              - entity: sensor.onkyo_audio_input_format
+              - entity: sensor.onkyo_audio_sample_rate
+              - entity: sensor.onkyo_audio_input_channels
+              - entity: sensor.onkyo_audio_output_format
+              - entity: sensor.onkyo_audio_information
+                name: Raw information
+      - type: grid
+        cards:
+          - type: heading
+            heading: Video signal
+            icon: mdi:video-outline
+            heading_style: title
+          - type: entities
+            show_header_toggle: false
+            entities:
+              - entity: sensor.onkyo_video_input
+              - entity: sensor.onkyo_video_input_resolution
+              - entity: sensor.onkyo_video_input_color_space
+              - entity: sensor.onkyo_video_input_color_depth
+              - type: divider
+              - entity: sensor.onkyo_video_output
+              - entity: sensor.onkyo_video_output_resolution
+              - entity: sensor.onkyo_video_output_color_space
+              - entity: sensor.onkyo_video_output_color_depth
+              - entity: sensor.onkyo_video_information
+                name: Raw information
+      - type: grid
+        cards:
+          - type: heading
+            heading: HDMI and picture
+            icon: mdi:hdmi-port
+            heading_style: title
+          - type: entities
+            show_header_toggle: false
+            entities:
+              - entity: select.onkyo_hdmi_audio_out
+              - entity: select.onkyo_monitor_resolution
+              - entity: select.onkyo_video_wide_mode
+              - entity: select.onkyo_picture_mode
+
+  - title: Diagnostics
+    path: diagnostics
+    icon: mdi:stethoscope
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        cards:
+          - type: heading
+            heading: ESP diagnostics
+            icon: mdi:chip
+            heading_style: title
+          - type: entities
+            show_header_toggle: false
+            state_color: true
+            entities:
+              - entity: binary_sensor.onkyo_receiver_connected
+              - entity: sensor.onkyo_esp_uptime
+              - entity: sensor.onkyo_esp_reset_reason
+              - entity: sensor.onkyo_esp_heap_free
+              - entity: sensor.onkyo_esp_largest_heap_block
+              - entity: sensor.onkyo_esp_heap_fragmentation
+              - entity: sensor.onkyo_esp_max_loop_time
+          - type: history-graph
+            title: Heap and loop time
+            hours_to_show: 6
+            entities:
+              - entity: sensor.onkyo_esp_heap_free
+              - entity: sensor.onkyo_esp_largest_heap_block
+              - entity: sensor.onkyo_esp_max_loop_time
+      - type: grid
+        cards:
+          - type: heading
+            heading: ISCP diagnostics
+            icon: mdi:serial-port
+            heading_style: title
+          - type: entities
+            show_header_toggle: false
+            entities:
+              - entity: sensor.onkyo_last_iscp_frame
+              - entity: sensor.onkyo_last_unknown_iscp_frame
+              - entity: sensor.onkyo_display
+          - type: button
+            entity: button.onkyo_query_all
+            name: Query complete status
+            icon: mdi:refresh
+            tap_action:
+              action: perform-action
+              perform_action: button.press
+              target:
+                entity_id: button.onkyo_query_all
