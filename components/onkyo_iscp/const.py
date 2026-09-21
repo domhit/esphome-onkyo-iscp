@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (c) 2026 Dominic Hitschel
+
 CONF_ONKYO_ISCP_ID = "onkyo_iscp_id"
 CONF_POWER = "power"
 CONF_MUTE = "mute"

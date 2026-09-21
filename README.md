@@ -341,3 +341,8 @@ Wiring used for the current setup:
 ## Compatibility
 
 Development and live testing are currently performed with an Onkyo TX-SR608. Other Onkyo receivers using compatible ISCP commands may work, but command availability and accepted values can differ between models.
+
+## License
+
+This project is licensed under the GNU General Public License v3.0 only
+(`GPL-3.0-only`). See the LICENSE file for details.

@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-only
+// Copyright (c) 2026 Dominic Hitschel
+
 #include "onkyo_iscp.h"
 
 #include <algorithm>
