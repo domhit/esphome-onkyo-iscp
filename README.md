@@ -338,6 +338,21 @@ Wiring used for the current setup:
 - Do not power the ESP8266 from the 3.3 V pin of the receiver writing port
 - Do not use the receiver mainboard `+12VD_ST` or `+10VS` rails as an ESP8266 power source
 
+## Home Assistant dashboard
+
+An example dashboard using built-in Home Assistant cards is available at:
+
+`examples/home-assistant-dashboard.yaml`
+
+Replace the example entity IDs with the entity IDs from your Home Assistant
+installation.
+
+> [!WARNING]
+> The master-volume slider can cause large and very fast volume changes.
+> Verify the current value before moving the slider and increase the volume
+> carefully. A configurable maximum-volume limit is planned for a future
+> release but is not implemented in v0.7.0.
+
 ## Compatibility
 
 Development and live testing are currently performed with an Onkyo TX-SR608. Other Onkyo receivers using compatible ISCP commands may work, but command availability and accepted values can differ between models.
