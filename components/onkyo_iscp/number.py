@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (c) 2026 Dominic Hitschel
+
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import number
@@ -87,7 +90,7 @@ CONFIG_SCHEMA = cv.Schema(
             icon="mdi:sleep",
             unit_of_measurement="min",
         ),
-                cv.Optional(CONF_FM_FREQUENCY): number.number_schema(
+        cv.Optional(CONF_FM_FREQUENCY): number.number_schema(
             OnkyoFmFrequencyNumber,
             icon="mdi:radio-fm",
             unit_of_measurement="MHz",
@@ -108,7 +111,9 @@ CONFIG_SCHEMA = cv.Schema(
 async def to_code(config):
     parent = await cg.get_variable(config[CONF_ONKYO_ISCP_ID])
     if volume_config := config.get(CONF_MASTER_VOLUME):
-        var = await number.new_number(volume_config, min_value=0, max_value=100, step=1)
+        var = await number.new_number(
+            volume_config, min_value=0, max_value=100, step=1
+        )
         cg.add(var.set_parent(parent))
         cg.add(parent.set_volume_number(var))
     if relative_volume_config := config.get(CONF_MASTER_VOLUME_RELATIVE):

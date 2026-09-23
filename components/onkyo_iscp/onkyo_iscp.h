@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-only
+// Copyright (c) 2026 Dominic Hitschel
+
 #pragma once
 
 #include <deque>
@@ -18,7 +21,7 @@ namespace esphome::onkyo_iscp {
 
 class OnkyoIscp;
 
-//Switches ####################################################################################
+// Switches
 class OnkyoPowerSwitch : public switch_::Switch {
  public:
   void set_parent(OnkyoIscp* parent) { parent_ = parent; }
@@ -67,7 +70,7 @@ class OnkyoMusicOptimizerSwitch : public switch_::Switch {
   void write_state(bool state) override;
   OnkyoIscp* parent_{nullptr};
 };
-//Numbers ####################################################################################
+// Numbers
 class OnkyoVolumeNumber : public number::Number {
  public:
   void set_parent(OnkyoIscp* parent) { parent_ = parent; }
@@ -147,7 +150,7 @@ class OnkyoTunerPresetNumber : public number::Number {
   void control(float value) override;
   OnkyoIscp *parent_{nullptr};
 };
-//Selects ####################################################################################
+// Selects
 class OnkyoInputSelect : public select::Select {
  public:
   void set_parent(OnkyoIscp* parent) { parent_ = parent; }
@@ -253,7 +256,7 @@ class OnkyoDisplayModeSelect : public select::Select {
   OnkyoIscp *parent_{nullptr};
 };
 
-//Buttons ####################################################################################
+// Buttons
 class OnkyoVolumeUpButton : public button::Button {
  public:
   void set_parent(OnkyoIscp* parent) { parent_ = parent; }
@@ -491,7 +494,7 @@ class OnkyoSpeakerLevelDownButton : public button::Button {
   void press_action() override;
   OnkyoIscp *parent_{nullptr};
 };
-//Main ####################################################################################
+// Main component
 class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
  public:
   void setup() override;
@@ -571,14 +574,19 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   void set_display_sensor(text_sensor::TextSensor* entity) { display_sensor_ = entity; }
   void set_audio_information_sensor(text_sensor::TextSensor *entity) { audio_information_sensor_ = entity; }
   void set_video_information_sensor(text_sensor::TextSensor *entity) { video_information_sensor_ = entity; }
+  void set_audio_source_sensor(text_sensor::TextSensor *entity) { audio_source_sensor_ = entity; }
   void set_audio_input_format_sensor(text_sensor::TextSensor *entity) { audio_input_format_sensor_ = entity; }
   void set_audio_sample_rate_sensor(text_sensor::TextSensor *entity) { audio_sample_rate_sensor_ = entity; }
   void set_audio_input_channels_sensor(text_sensor::TextSensor *entity) { audio_input_channels_sensor_ = entity; }
-  void set_audio_output_channels_sensor(text_sensor::TextSensor *entity) { audio_output_channels_sensor_ = entity; }
+  void set_audio_output_format_sensor(text_sensor::TextSensor *entity) { audio_output_format_sensor_ = entity; }
   void set_video_input_sensor(text_sensor::TextSensor *entity) { video_input_sensor_ = entity; }
   void set_video_input_resolution_sensor(text_sensor::TextSensor *entity) { video_input_resolution_sensor_ = entity; }
+  void set_video_input_color_space_sensor(text_sensor::TextSensor *entity) { video_input_color_space_sensor_ = entity; }
+  void set_video_input_color_depth_sensor(text_sensor::TextSensor *entity) { video_input_color_depth_sensor_ = entity; }
   void set_video_output_sensor(text_sensor::TextSensor *entity) { video_output_sensor_ = entity; }
   void set_video_output_resolution_sensor(text_sensor::TextSensor *entity) { video_output_resolution_sensor_ = entity; }
+  void set_video_output_color_space_sensor(text_sensor::TextSensor *entity) { video_output_color_space_sensor_ = entity; }
+  void set_video_output_color_depth_sensor(text_sensor::TextSensor *entity) { video_output_color_depth_sensor_ = entity; }
   void set_audio_selector_select(OnkyoAudioSelectorSelect* entity) { audio_selector_select_ = entity; }
   void set_speaker_layout_select(OnkyoSpeakerLayoutSelect* entity) { speaker_layout_select_ = entity; }
   void set_listening_mode_select(OnkyoListeningModeSelect* entity) { listening_mode_select_ = entity; }
@@ -625,7 +633,6 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
 
   static std::string normalize_frame_(std::string frame);
   static std::string input_code_to_name_(const std::string& code);
-  static std::string input_name_to_code_(const std::string& name);
   std::string configured_input_code_to_name_(const std::string &code) const;
   std::string configured_input_name_to_code_(const std::string &name) const;
   static std::string listening_mode_code_to_name_(const std::string& code);
@@ -644,7 +651,11 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   static std::string audio_selector_name_to_code_(const std::string& name);
   static std::string speaker_layout_code_to_name_(const std::string& code);
   static std::string speaker_layout_name_to_code_(const std::string& name);
-  enum class TunerBand : uint8_t { UNKNOWN, FM, AM, };
+  enum class TunerBand : uint8_t {
+    UNKNOWN,
+    FM,
+    AM,
+  };
   TunerBand tuner_band_{TunerBand::UNKNOWN};
   static std::string pty_code_to_name_(const std::string &code);
   static std::string pty_name_to_code_(const std::string &name);
@@ -659,7 +670,10 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   static std::string display_mode_code_to_name_( const std::string &code);
   static std::string display_mode_name_to_code_( const std::string &name);
 
-  struct InputSource { std::string code; std::string name; };
+  struct InputSource {
+    std::string code;
+    std::string name;
+  };
   std::vector<InputSource> input_sources_;
   std::string rx_buffer_;
   std::deque<std::string> command_queue_;
@@ -711,14 +725,19 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   binary_sensor::BinarySensor* connected_binary_sensor_{nullptr};
   text_sensor::TextSensor *audio_information_sensor_{nullptr};
   text_sensor::TextSensor *video_information_sensor_{nullptr};
+  text_sensor::TextSensor *audio_source_sensor_{nullptr};
   text_sensor::TextSensor *audio_input_format_sensor_{nullptr};
   text_sensor::TextSensor *audio_sample_rate_sensor_{nullptr};
   text_sensor::TextSensor *audio_input_channels_sensor_{nullptr};
-  text_sensor::TextSensor *audio_output_channels_sensor_{nullptr};
+  text_sensor::TextSensor *audio_output_format_sensor_{nullptr};
   text_sensor::TextSensor *video_input_sensor_{nullptr};
   text_sensor::TextSensor *video_input_resolution_sensor_{nullptr};
+  text_sensor::TextSensor *video_input_color_space_sensor_{nullptr};
+  text_sensor::TextSensor *video_input_color_depth_sensor_{nullptr};
   text_sensor::TextSensor *video_output_sensor_{nullptr};
   text_sensor::TextSensor *video_output_resolution_sensor_{nullptr};
+  text_sensor::TextSensor *video_output_color_space_sensor_{nullptr};
+  text_sensor::TextSensor *video_output_color_depth_sensor_{nullptr};
 };
 
 template <typename... Ts>

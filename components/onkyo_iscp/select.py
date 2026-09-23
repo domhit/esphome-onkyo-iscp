@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (c) 2026 Dominic Hitschel
+
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import select
@@ -28,7 +31,7 @@ OnkyoInputSelect = onkyo_iscp_ns.class_("OnkyoInputSelect", select.Select)
 OnkyoListeningModeSelect = onkyo_iscp_ns.class_("OnkyoListeningModeSelect", select.Select)
 OnkyoDynamicVolumeSelect = onkyo_iscp_ns.class_("OnkyoDynamicVolumeSelect", select.Select)
 OnkyoLateNightSelect = onkyo_iscp_ns.class_("OnkyoLateNightSelect", select.Select)
-OnkyoDimmerSelect = onkyo_iscp_ns.class_( "OnkyoDimmerSelect", select.Select)
+OnkyoDimmerSelect = onkyo_iscp_ns.class_("OnkyoDimmerSelect", select.Select)
 OnkyoAudioSelectorSelect = onkyo_iscp_ns.class_("OnkyoAudioSelectorSelect", select.Select)
 OnkyoSpeakerLayoutSelect = onkyo_iscp_ns.class_("OnkyoSpeakerLayoutSelect", select.Select)
 OnkyoPtySelect = onkyo_iscp_ns.class_("OnkyoPtySelect", select.Select)
@@ -60,26 +63,56 @@ INPUT_OPTIONS = [
 ]
 
 
-INPUT_CODES = {name: code for code, name in [
-    ("00", "VCR/DVR"), ("01", "CBL/SAT"), ("02", "GAME/TV"),
-    ("03", "AUX1"), ("04", "AUX2"), ("05", "PC"), ("10", "BD/DVD"),
-    ("20", "TAPE"), ("22", "PHONO"), ("23", "TV/CD"), ("24", "FM"),
-    ("25", "AM"), ("26", "TUNER"), ("30", "MULTI CH"),
-    ("40", "UNIVERSAL PORT"), ("55", "HDMI 5"), ("56", "HDMI 6"), ("57", "HDMI 7"),
-]}
-INPUT_SOURCE_SCHEMA = cv.Schema({
-    cv.Required(CONF_ONKYO_NAME): cv.one_of(*INPUT_CODES),
-    cv.Optional(CONF_ENABLED, default=True): cv.boolean,
-    cv.Optional(CONF_NAME): cv.string_strict,
-})
+INPUT_CODES = {
+    name: code
+    for code, name in [
+        ("00", "VCR/DVR"),
+        ("01", "CBL/SAT"),
+        ("02", "GAME/TV"),
+        ("03", "AUX1"),
+        ("04", "AUX2"),
+        ("05", "PC"),
+        ("10", "BD/DVD"),
+        ("20", "TAPE"),
+        ("22", "PHONO"),
+        ("23", "TV/CD"),
+        ("24", "FM"),
+        ("25", "AM"),
+        ("26", "TUNER"),
+        ("30", "MULTI CH"),
+        ("40", "UNIVERSAL PORT"),
+        ("55", "HDMI 5"),
+        ("56", "HDMI 6"),
+        ("57", "HDMI 7"),
+    ]
+}
+
+INPUT_SOURCE_SCHEMA = cv.Schema(
+    {
+        cv.Required(CONF_ONKYO_NAME): cv.one_of(*INPUT_CODES),
+        cv.Optional(CONF_ENABLED, default=True): cv.boolean,
+        cv.Optional(CONF_NAME): cv.string_strict,
+    }
+)
+
+
 def validate_input_sources(value):
     enabled = [source for source in value if source[CONF_ENABLED]]
-    if not enabled: raise cv.Invalid("At least one input source must be enabled")
+    if not enabled:
+        raise cv.Invalid("At least one input source must be enabled")
+
     onkyo_names = [source[CONF_ONKYO_NAME] for source in value]
-    if len(onkyo_names) != len(set(onkyo_names)): raise cv.Invalid("Duplicate onkyo_name in input sources")
-    names = [source.get(CONF_NAME, source[CONF_ONKYO_NAME]).strip() for source in enabled]
-    if any(not name for name in names): raise cv.Invalid("Input source names must not be empty")
-    if len(names) != len(set(names)): raise cv.Invalid("Duplicate display name in enabled input sources")
+    if len(onkyo_names) != len(set(onkyo_names)):
+        raise cv.Invalid("Duplicate onkyo_name in input sources")
+
+    names = [
+        source.get(CONF_NAME, source[CONF_ONKYO_NAME]).strip()
+        for source in enabled
+    ]
+    if any(not name for name in names):
+        raise cv.Invalid("Input source names must not be empty")
+    if len(names) != len(set(names)):
+        raise cv.Invalid("Duplicate display name in enabled input sources")
     return value
 
 LISTENING_MODE_OPTIONS = [
@@ -237,7 +270,14 @@ CONFIG_SCHEMA = cv.Schema(
         cv.GenerateID(CONF_ONKYO_ISCP_ID): cv.use_id(OnkyoIscp),
         cv.Optional(CONF_INPUT): select.select_schema(
             OnkyoInputSelect, icon="mdi:video-input-hdmi"
-        ).extend({cv.Optional(CONF_SOURCES): cv.All(cv.ensure_list(INPUT_SOURCE_SCHEMA), validate_input_sources)}),
+        ).extend(
+            {
+                cv.Optional(CONF_SOURCES): cv.All(
+                    cv.ensure_list(INPUT_SOURCE_SCHEMA),
+                    validate_input_sources,
+                )
+            }
+        ),
         cv.Optional(CONF_LISTENING_MODE): select.select_schema(
             OnkyoListeningModeSelect,
             icon="mdi:surround-sound",
@@ -294,15 +334,26 @@ async def to_code(config):
     if input_config := config.get(CONF_INPUT):
         sources = input_config.get(CONF_SOURCES)
         if sources is None:
-            sources = [{CONF_ONKYO_NAME: name, CONF_NAME: name, CONF_ENABLED: True} for name in INPUT_OPTIONS]
+            sources = [
+                {CONF_ONKYO_NAME: name, CONF_NAME: name, CONF_ENABLED: True}
+                for name in INPUT_OPTIONS
+            ]
         enabled_sources = [source for source in sources if source[CONF_ENABLED]]
-        options = [source.get(CONF_NAME, source[CONF_ONKYO_NAME]) for source in enabled_sources]
+        options = [
+            source.get(CONF_NAME, source[CONF_ONKYO_NAME])
+            for source in enabled_sources
+        ]
         var = await select.new_select(input_config, options=options)
         cg.add(var.set_parent(parent))
         cg.add(parent.set_input_select(var))
         for source in enabled_sources:
             onkyo_name = source[CONF_ONKYO_NAME]
-            cg.add(parent.add_input_source(INPUT_CODES[onkyo_name], source.get(CONF_NAME, onkyo_name)))
+            cg.add(
+                parent.add_input_source(
+                    INPUT_CODES[onkyo_name],
+                    source.get(CONF_NAME, onkyo_name),
+                )
+            )
     if listening_mode_config := config.get(CONF_LISTENING_MODE):
         var = await select.new_select(
             listening_mode_config, options=LISTENING_MODE_OPTIONS

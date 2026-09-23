@@ -1,3 +1,11 @@
+# Example configuration for the ESPHome Onkyo ISCP component.
+# Replace all !secret values with entries from your secrets.yaml file.
+#
+# WARNING: The master-volume sliders can cause large and very fast volume
+# changes. Check the current value before moving a slider and increase the
+# volume carefully. A configurable runtime maximum-volume limit is planned
+# for a future release, but is not implemented in v0.7.0.
+
 substitutions:
   device_name: onkyo-tx-sr608
   friendly_name: Onkyo TX-SR608
@@ -9,8 +17,8 @@ esphome:
 esp8266:
   board: nodemcuv2
 
-# UART0 wird für den Onkyo verwendet.
-# Deshalb keine serielle Logausgabe auf GPIO1/GPIO3.
+# UART0 is used for communication with the receiver.
+# Disable serial logger output to avoid conflicts on GPIO1 and GPIO3.
 logger:
   baud_rate: 0
   level: DEBUG
@@ -21,7 +29,7 @@ api:
 
 ota:
   - platform: esphome
-    encryption:
+    password: !secret onkyo_ota_password
 
 wifi:
   ssid: !secret wifi_ssid_iot
@@ -37,7 +45,7 @@ external_components:
   - source:
       type: git
       url: https://github.com/domhit/esphome-onkyo-iscp
-      ref: dev/v0.6.0
+      ref: v0.7.0
     components:
       - onkyo_iscp
     refresh: 0s
@@ -61,7 +69,7 @@ binary_sensor:
   - platform: onkyo_iscp
     onkyo_iscp_id: onkyo_receiver
     connected:
-      name: Receiver verbunden
+      name: Receiver Connected
 
 switch:
   - platform: onkyo_iscp
@@ -92,43 +100,43 @@ number:
     onkyo_iscp_id: onkyo_receiver
 
     master_volume:
-      name: Master-Lautstärke absolut
+      name: Master Volume Absolute
       mode: slider
 
     master_volume_relative:
-      name: Master-Lautstärke relativ
+      name: Master Volume Relative
       mode: slider
       
     front_bass:
-      name: Bass Front
+      name: Front Bass
       mode: slider
 
     front_treble:
-      name: Treble Front
+      name: Front Treble
       mode: slider
 
     subwoofer_level:
-      name: Subwoofer-Level
+      name: Subwoofer Level
       mode: slider
 
     center_level:
-      name: Center-Level
+      name: Center Level
       mode: slider
 
     sleep_timer:
-      name: Sleep-Timer
+      name: Sleep Timer
       mode: box
 
     fm_frequency:
-      name: FM-Frequenz
+      name: FM Frequency
       mode: box
 
     am_frequency:
-      name: AM-Frequenz
+      name: AM Frequency
       mode: box
 
     tuner_preset:
-      name: Tuner-Preset
+      name: Tuner Preset
       mode: box
 
 select:
@@ -136,40 +144,7 @@ select:
     onkyo_iscp_id: onkyo_receiver
 
     input:
-      name: Eingang
-      sources:
-        - onkyo_name: "VCR/DVR"
-          name: "XBOX"
-    
-        - onkyo_name: "CBL/SAT"
-          name: "PS4"
-    
-        - onkyo_name: "GAME/TV"
-          name: "PS3"
-    
-        - onkyo_name: "AUX1"
-          name: "Switch"
-    
-        - onkyo_name: "PC"
-          name: "Wii"
-    
-        - onkyo_name: "BD/DVD"
-          name: "PS2"
-    
-        - onkyo_name: "TV/CD"
-          name: "XBOX360"
-    
-        - onkyo_name: "FM"
-          name: "FM"
-    
-        - onkyo_name: "AM"
-          name: "AM"
-    
-        - onkyo_name: "TUNER"
-          name: "Tuner"
-    
-        - onkyo_name: "UNIVERSAL PORT"
-          name: "Universal Port"
+      name: Input
           
     listening_mode:
       name: Listening Mode
@@ -181,7 +156,7 @@ select:
       name: Late Night
     
     dimmer:
-      name: Displayhelligkeit
+      name: Display Brightness
 
     audio_selector:
       name: Audio Selector
@@ -191,14 +166,14 @@ select:
       disabled_by_default: true
 
     pty:
-      name: RDS Programmtyp
+      name: RDS Program Type
 
     hdmi_audio_out:
       name: HDMI Audio Out
       disabled_by_default: true
 
     monitor_resolution:
-      name: Monitor-Auflösung
+      name: Monitor Resolution
       disabled_by_default: true
 
     video_wide_mode:
@@ -210,74 +185,74 @@ select:
       disabled_by_default: true
     
     display_mode:
-      name: Displaymodus
+      name: Display Mode
       
 button:
   - platform: onkyo_iscp
     onkyo_iscp_id: onkyo_receiver
 
     volume_up:
-      name: Lauter
+      name: Volume Up
 
     volume_down:
-      name: Leiser
+      name: Volume Down
 
     query_all:
-      name: Status vollständig abfragen
+      name: Query Full Status
 
     preset_up:
-      name: Preset vor
+      name: Next Preset
 
     preset_down:
-      name: Preset zurück
+      name: Previous Preset
 
     preset_store:
-      name: Aktuellen Sender speichern
+      name: Store Current Station
       
     rds_radio_text:
-      name: RDS Radio Text anzeigen
+      name: Show RDS Radio Text
 
     rds_pty:
-      name: RDS PTY anzeigen
+      name: Show RDS PTY
 
     rds_tp:
-      name: RDS TP anzeigen
+      name: Show RDS TP
 
     rds_next:
-      name: RDS-Anzeige weiterschalten
+      name: Cycle RDS Display
 
     pty_scan:
-      name: PTY-Suche starten
+      name: Start PTY Scan
 
     tp_scan:
-      name: TP-Suche starten
+      name: Start TP Scan
 
     osd_menu:
-      name: Setup-Menü
+      name: Setup Menu
       disabled_by_default: true
 
     osd_up:
-      name: OSD Hoch
+      name: OSD Up
       disabled_by_default: true
 
     osd_down:
-      name: OSD Runter
+      name: OSD Down
       disabled_by_default: true
 
     osd_left:
-      name: OSD Links
+      name: OSD Left
       disabled_by_default: true
 
     osd_right:
-      name: OSD Rechts
+      name: OSD Right
       disabled_by_default: true
 
     osd_enter:
-      name: OSD Bestätigen
+      name: OSD Enter
       disabled_by_default: true
 
     osd_exit:
-      name: OSD Beenden
+      name: OSD Exit
       disabled_by_default: true
 
     osd_home:
@@ -289,78 +264,75 @@ button:
       disabled_by_default: true
 
     osd_audio:
-      name: Audio-Menü
+      name: Audio Menu
       disabled_by_default: true
 
     osd_video:
-      name: Video-Menü
+      name: Video Menu
       disabled_by_default: true
       
     display_audio_format:
-      name: Audioformat anzeigen
+      name: Show Audio Format
 
     display_video_format:
-      name: Videoformat anzeigen
+      name: Show Video Format
 
     display_mode_next:
-      name: Displaymodus weiterschalten
+      name: Next Display Mode 
 
     speaker_level_test:
-      name: Lautsprecher-Testton
+      name: Speaker Test Tone
       disabled_by_default: true
 
     speaker_level_next:
-      name: Nächster Lautsprecher
+      name: Next Speaker
       disabled_by_default: true
 
     speaker_level_up:
-      name: Lautsprecherpegel erhöhen
+      name: Increase Speaker Level
       disabled_by_default: true
 
     speaker_level_down:
-      name: Lautsprecherpegel verringern
+      name: Decrease Speaker Level
       disabled_by_default: true
       
 text_sensor:
   - platform: onkyo_iscp
     onkyo_iscp_id: onkyo_receiver
-
     audio_information:
-      name: Audio-Signalinformation
-
+      name: Audio Signal Information
     video_information:
-      name: Video-Signalinformation   
-      
+      name: Video Signal Information
     last_frame:
-      name: Letzter ISCP-Frame
-    
+      name: Last ISCP Frame
     last_unknown_frame:
-      name: Letzter unbekannter ISCP-Frame
-      
+      name: Last Unknown ISCP Frame
     display:
       name: Display
       disabled_by_default: true
-
+    audio_source:
+      name: Audio Source
     audio_input_format:
-      name: Audio-Eingangsformat
-
+      name: Audio Input Format
     audio_sample_rate:
-      name: Audio-Abtastrate
-
+      name: Audio Sample Rate
     audio_input_channels:
-      name: Audio-Eingangskanäle
-
-    audio_output_channels:
-      name: Audio-Ausgangskanäle
-
+      name: Audio Input Channels
+    audio_output_format:
+      name: Audio Output Format
     video_input:
-      name: Video-Eingang
-
+      name: Video Input
     video_input_resolution:
-      name: Video-Eingangsauflösung
-
+      name: Video Input Resolution
+    video_input_color_space:
+      name: Video Input Color Space
+    video_input_color_depth:
+      name: Video Input Color Depth
     video_output:
-      name: Video-Ausgang
-
+      name: Video Output
     video_output_resolution:
-      name: Video-Ausgangsauflösung
+      name: Video Output Resolution
+    video_output_color_space:
+      name: Video Output Color Space
+    video_output_color_depth:
+      name: Video Output Color Depth
