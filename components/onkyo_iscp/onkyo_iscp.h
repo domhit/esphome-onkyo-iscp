@@ -16,6 +16,7 @@
 #include "esphome/components/uart/uart.h"
 #include "esphome/core/automation.h"
 #include "esphome/core/component.h"
+#include "esphome/core/preferences.h"
 
 namespace esphome::onkyo_iscp {
 
@@ -85,6 +86,18 @@ class OnkyoRelativeVolumeNumber : public number::Number {
  protected:
   void control(float value) override;
   OnkyoIscp *parent_{nullptr};
+};
+class OnkyoMaximumVolumeNumber : public number::Number, public Component {
+ public:
+  void set_parent(OnkyoIscp *parent) { parent_ = parent; }
+  void setup() override;
+  void dump_config() override;
+
+ protected:
+  void control(float value) override;
+  OnkyoIscp *parent_{nullptr};
+  ESPPreferenceObject preference_{};
+  static constexpr float DEFAULT_MAXIMUM_VOLUME = 60.0f;
 };
 class OnkyoFrontBassNumber : public number::Number {
  public:
@@ -509,6 +522,9 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   void set_mute(bool state);
   void set_volume(float raw_value);
   void set_relative_volume(float db_value);
+  void set_maximum_volume(float raw_value);
+  void volume_up();
+  void volume_down();
   void set_front_bass(float value);
   void set_front_treble(float value);
   void set_subwoofer_level(float value);
@@ -564,6 +580,7 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   void set_dynamic_volume_select(OnkyoDynamicVolumeSelect* entity) { dynamic_volume_select_ = entity; }
   void set_volume_number(OnkyoVolumeNumber* entity) { volume_number_ = entity; }
   void set_relative_volume_number(OnkyoRelativeVolumeNumber *entity) { relative_volume_number_ = entity; }
+  void set_maximum_volume_number(OnkyoMaximumVolumeNumber *entity) { maximum_volume_number_ = entity; }
   void set_front_bass_number(OnkyoFrontBassNumber* entity) { front_bass_number_ = entity; }
   void set_front_treble_number(OnkyoFrontTrebleNumber* entity) { front_treble_number_ = entity; }
   void set_subwoofer_level_number(OnkyoSubwooferLevelNumber* entity) { subwoofer_level_number_ = entity; }
@@ -684,6 +701,9 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   uint32_t last_valid_frame_ms_{0};
   bool receiver_online_{false};
   bool receiver_power_on_{false};
+  float maximum_volume_{100.0f};
+  int current_master_volume_{-1};
+  bool maximum_volume_enabled_{false};
   uint32_t last_full_query_ms_{0};
   static constexpr uint32_t RECEIVER_TIMEOUT_MS = 75000;
   static bool is_valid_ascii_frame_(const std::string& frame);
@@ -699,6 +719,7 @@ class OnkyoIscp : public PollingComponent, public uart::UARTDevice {
   OnkyoDynamicVolumeSelect* dynamic_volume_select_{nullptr};
   OnkyoVolumeNumber* volume_number_{nullptr};
   OnkyoRelativeVolumeNumber *relative_volume_number_{nullptr};
+  OnkyoMaximumVolumeNumber *maximum_volume_number_{nullptr};
   OnkyoFrontBassNumber* front_bass_number_{nullptr};
   OnkyoFrontTrebleNumber* front_treble_number_{nullptr};
   OnkyoSubwooferLevelNumber* subwoofer_level_number_{nullptr};
