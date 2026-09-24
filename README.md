@@ -10,6 +10,7 @@ External ESPHome component for controlling older Onkyo AV receivers through thei
 - Power and mute control
 - Absolute master volume from 0 to 100
 - Relative master volume from -82 to +18 dB
+- Persistent runtime-configurable maximum master volume
 - Configurable input selection with custom aliases
 - Volume up and down
 - Listening modes
@@ -157,7 +158,7 @@ absolute value = relative dB + 82
 For example, absolute volume `52` corresponds to `-30 dB`.
 
 > [!WARNING]
-> The master-volume slider can cause large and very fast volume changes. Verify the current value before moving the slider and increase the volume carefully. A configurable runtime maximum-volume limit is planned for a future release, but is not implemented in v0.7.0.
+> The master-volume slider can cause large and very fast volume changes. Version 0.8.0 adds an optional persistent maximum-volume limit that can be changed at runtime from Home Assistant. The limit applies to native absolute and relative master-volume control and to Volume Up. Raw ISCP commands intentionally bypass this protection.
 
 #### Speaker Level Calibration
 
@@ -218,6 +219,54 @@ Key changes and validation work:
 - No unexpected `Power On` resets occurred after replacing the unstable power supply
 
 Detailed regression and stability-test results are documented in `docs/testing.md`.
+
+#### v0.8.0
+
+Version 0.8.0 adds runtime-configurable master-volume protection and improves handling of known Zone 2 notifications.
+
+##### Maximum master volume
+
+An optional `maximum_volume` number can be exposed in Home Assistant:
+
+```yaml
+number:
+  - platform: onkyo_iscp
+    onkyo_iscp_id: onkyo_receiver
+
+    maximum_volume:
+      name: Maximum Volume
+      mode: box
+```
+The maximum-volume setting:
+
+Defaults to 60 on the absolute Onkyo volume scale
+Can be changed at runtime from Home Assistant without recompiling
+Is stored persistently and restored after an ESP restart
+Applies to native absolute master-volume control
+Applies to native relative master-volume control
+Prevents Volume Up from exceeding the configured maximum
+Allows Volume Down while the current receiver volume is above the configured maximum
+
+Lowering the configured maximum below the current receiver volume does not automatically reduce the volume. This avoids an unexpected volume change when only the protection limit is adjusted.
+
+The raw onkyo_iscp.send action intentionally remains unrestricted and can bypass the maximum-volume protection. It should therefore be treated as an expert interface.
+
+Zone 2 frame recognition
+
+Known TX-SR608 Zone 2 command groups are recognized so normal Zone 2 notifications do not appear as unknown ISCP frames:
+
+ZPW: Zone 2 power
+ZMT: Zone 2 mute
+ZVL: Zone 2 volume
+ZTN: Zone 2 tone
+ZBL: Zone 2 balance
+SLZ: Zone 2 input selector
+TUZ: Zone 2 tuner frequency
+PRZ: Zone 2 tuner preset
+
+Zone 2 control is intentionally not exposed as native Home Assistant entities because it is outside the tested project scope.
+
+TUZ and PRZ are handled separately from Main Zone tuner state and therefore no longer update the Main Zone frequency or tuner-preset entities.
 
 ## Raw ISCP commands
 

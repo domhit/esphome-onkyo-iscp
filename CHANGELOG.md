@@ -217,6 +217,30 @@
 - A configurable runtime maximum-volume limit is planned for a future release but is not implemented in v0.7.0
 - The ESPUI proof of concept remains experimental and is not included in the ESP8266 release because page initialization/reloads could trigger Soft WDT resets during testing
 
+#### 0.8.0
+
+##### Added
+- Persistent runtime-configurable maximum master-volume entity
+- Default maximum master-volume value of 60 on the absolute Onkyo scale
+- Maximum-volume protection for native absolute volume, relative volume and Volume Up control
+- Recognition of known TX-SR608 Zone 2 command groups: ZPW, ZMT, ZVL, ZTN, ZBL, SLZ, TUZ and PRZ
+
+##### Changed
+- Maximum master volume can be changed from Home Assistant without recompiling the firmware
+- Lowering the configured maximum below the current receiver volume does not automatically change the current volume
+- Volume Down remains available while the receiver is above the configured maximum
+- Known Zone 2 notifications are handled as recognized auxiliary frames instead of unknown ISCP frames
+
+##### Fixed
+- TUZ Zone 2 tuner-frequency notifications no longer update Main Zone FM/AM frequency entities
+- PRZ Zone 2 tuner-preset notifications no longer update the Main Zone tuner-preset entity
+- Rapid native Volume Up actions cannot enqueue volume changes beyond the configured maximum
+
+##### Notes
+- Raw `onkyo_iscp.send` commands intentionally bypass the maximum-volume protection
+- Zone 2 control is intentionally not exposed as native entities; only known Zone 2 frame recognition is implemented
+- The maximum-volume setting is restored after an ESP restart
+- 
 ### Roadmap
 
 Development is focused on stable and well-tested support for the Onkyo TX-SR608. The goal is not to expose every model-dependent ISCP command, but to provide reliable Home Assistant entities for useful receiver functions while retaining raw-command access for advanced use cases.
@@ -246,14 +270,13 @@ Release requirements:
 
 The following features are intentionally outside the current pre-1.0 scope and may be considered later:
 
-- Full Zone 2 control
+- Full Zone 2 control; known Zone 2 notifications are recognized, but control is intentionally not exposed
 - Zone 3 support
 - Network and USB playback
 - Onkyo dock and iPod control
 - HDMI and digital-input assignment
 - Extended speaker setup
 - Additional model-specific ISCP commands
-- Configurable runtime maximum-volume limit
 - Standalone web interface, preferably on hardware with more runtime headroom or as an external frontend
 
 Zone-related notifications may still be recognized to prevent them from appearing as unknown frames, even when full zone control is not implemented.
