@@ -592,8 +592,14 @@ void OnkyoIscp::set_center_level(float value) {
   this->enqueue_command_("CTLQSTN");
 }
 void OnkyoIscp::set_volume(float raw_value) {
-  const int raw =
+  int raw =
       std::max(0, std::min(100, static_cast<int>(std::lround(raw_value))));
+  const int maximum = static_cast<int>(std::lround(maximum_volume_));
+  if (maximum_volume_enabled_ && raw > maximum) {
+    ESP_LOGW(TAG, "Requested master volume %d exceeds configured maximum %d; clamping", raw, maximum);
+    raw = maximum;
+  }
+  current_master_volume_ = raw;
   char command[8];
   std::snprintf(command, sizeof(command), "MVL%02X", raw);
   this->send_command(command);
@@ -602,6 +608,32 @@ void OnkyoIscp::set_relative_volume(float db_value) {
   const int db =
       std::max(-82, std::min(18, static_cast<int>(std::lround(db_value))));
   this->set_volume(static_cast<float>(db + 82));
+}
+void OnkyoIscp::set_maximum_volume(float raw_value) {
+  maximum_volume_ = static_cast<float>(
+      std::max(0, std::min(100, static_cast<int>(std::lround(raw_value)))));
+  maximum_volume_enabled_ = true;
+  ESP_LOGI(TAG, "Maximum master volume set to %.0f", maximum_volume_);
+}
+void OnkyoIscp::volume_up() {
+  if (!maximum_volume_enabled_) {
+    this->send_command("MVLUP");
+    return;
+  }
+  if (current_master_volume_ < 0) {
+    ESP_LOGW(TAG, "Cannot safely increase master volume before the current volume is known");
+    this->enqueue_command_("MVLQSTN");
+    return;
+  }
+  const int maximum = static_cast<int>(std::lround(maximum_volume_));
+  if (current_master_volume_ >= maximum) {
+    ESP_LOGW(TAG, "Master volume is already at the configured maximum of %d", maximum);
+    return;
+  }
+  this->set_volume(static_cast<float>(current_master_volume_ + 1));
+}
+void OnkyoIscp::volume_down() {
+  this->send_command("MVLDOWN");
 }
 void OnkyoIscp::process_front_tone_(const std::string& value) {
   bool parsed_any_value = false;
@@ -1078,6 +1110,7 @@ bool OnkyoIscp::process_core_command_(const std::string &command, const std::str
       ESP_LOGW(TAG, "Invalid master volume response: %s", value.c_str());
       return true;
     }
+    current_master_volume_ = static_cast<int>(raw);
     if (volume_number_ != nullptr) volume_number_->publish_state(static_cast<float>(raw));
     if (relative_volume_number_ != nullptr)
       relative_volume_number_->publish_state(static_cast<float>(raw - 82));
@@ -1211,8 +1244,8 @@ bool OnkyoIscp::process_audio_command_(const std::string &command, const std::st
 }
 
 bool OnkyoIscp::process_tuner_command_(const std::string &command, const std::string &value) {
-  if (command == "TUN" || command == "TUZ") { this->process_tuner_frequency_(value); return true; }
-  if (command == "PRS" || command == "PRZ") { this->process_tuner_preset_(value); return true; }
+  if (command == "TUN") { this->process_tuner_frequency_(value); return true; }
+  if (command == "PRS") { this->process_tuner_preset_(value); return true; }
 
   if (command == "RDS") {
     if (value == "00") ESP_LOGD(TAG, "RDS display mode: Radio Text");
@@ -1297,6 +1330,34 @@ bool OnkyoIscp::process_video_command_(const std::string &command, const std::st
 }
 
 bool OnkyoIscp::process_auxiliary_command_(const std::string &command, const std::string &value) {
+  if (command == "ZPW") {
+    ESP_LOGD(TAG, "Zone 2 power notification: %s", value.c_str());
+    return true;
+  }
+  if (command == "ZMT") {
+    ESP_LOGD(TAG, "Zone 2 mute notification: %s", value.c_str());
+    return true;
+  }
+  if (command == "ZVL") {
+    ESP_LOGD(TAG, "Zone 2 volume notification: %s", value.c_str());
+    return true;
+  }
+  if (command == "ZTN") {
+    ESP_LOGD(TAG, "Zone 2 tone notification: %s", value.c_str());
+    return true;
+  }
+  if (command == "ZBL") {
+    ESP_LOGD(TAG, "Zone 2 balance notification: %s", value.c_str());
+    return true;
+  }
+  if (command == "TUZ") {
+    ESP_LOGD(TAG, "Zone 2 tuner frequency notification: %s", value.c_str());
+    return true;
+  }
+  if (command == "PRZ") {
+    ESP_LOGD(TAG, "Zone 2 tuner preset notification: %s", value.c_str());
+    return true;
+  }
   if (command == "TST") {
     if (value == "N/A") ESP_LOGD(TAG, "TST function is not available");
     else ESP_LOGD(TAG, "TST response: %s", value.c_str());
@@ -1575,6 +1636,26 @@ void OnkyoVolumeNumber::control(float value) {
 void OnkyoRelativeVolumeNumber::control(float value) {
   if (parent_) parent_->set_relative_volume(value);
 }
+void OnkyoMaximumVolumeNumber::setup() {
+  float value = DEFAULT_MAXIMUM_VOLUME;
+  preference_ = this->make_entity_preference<float>();
+  if (!preference_.load(&value)) value = DEFAULT_MAXIMUM_VOLUME;
+  value = static_cast<float>(
+      std::max(0, std::min(100, static_cast<int>(std::lround(value)))));
+  if (parent_ != nullptr) parent_->set_maximum_volume(value);
+  this->publish_state(value);
+}
+void OnkyoMaximumVolumeNumber::dump_config() {
+  LOG_NUMBER("", "Maximum Master Volume", this);
+  ESP_LOGCONFIG(TAG, "  Default maximum volume: %.0f", DEFAULT_MAXIMUM_VOLUME);
+}
+void OnkyoMaximumVolumeNumber::control(float value) {
+  value = static_cast<float>(
+      std::max(0, std::min(100, static_cast<int>(std::lround(value)))));
+  if (parent_ != nullptr) parent_->set_maximum_volume(value);
+  this->publish_state(value);
+  preference_.save(&value);
+}
 void OnkyoFrontBassNumber::control(float value) {
   if (parent_ != nullptr) {
     parent_->set_front_bass(value);
@@ -1599,10 +1680,10 @@ void OnkyoInputSelect::control(const std::string& value) {
   if (parent_) parent_->set_input(value);
 }
 void OnkyoVolumeUpButton::press_action() {
-  if (parent_) parent_->send_command("MVLUP");
+  if (parent_) parent_->volume_up();
 }
 void OnkyoVolumeDownButton::press_action() {
-  if (parent_) parent_->send_command("MVLDOWN");
+  if (parent_) parent_->volume_down();
 }
 void OnkyoQueryAllButton::press_action() {
   if (parent_) parent_->query_all();

@@ -100,3 +100,68 @@ The previously observed repeated `Power On` resets did not recur after replacing
 No evidence of a memory leak, progressive heap fragmentation, command-queue instability, or long-term UART instability was observed.
 
 Final long-term result: **PASS**
+
+#### v0.8.0 Feature Regression Test
+
+##### Test environment
+- Hardware: ESP8266 / NodeMCU
+- Receiver: Onkyo TX-SR608
+- UART: 9600 baud, 8N1
+- ESPHome: 2026.9.0
+- Branch: dev/v0.8.0
+
+##### Maximum-volume protection
+
+The runtime-configurable maximum-volume feature was tested with the native
+absolute and relative master-volume entities and the Volume Up/Down controls.
+
+Verified behavior:
+- Maximum volume is exposed as a Home Assistant number entity
+- Default maximum is 60 on the absolute Onkyo volume scale
+- The limit can be changed at runtime without recompilation
+- The selected maximum is stored persistently and restored after an ESP restart
+- Absolute volume requests above the limit are clamped to the configured maximum
+- Relative volume requests obey the same maximum after conversion to the absolute scale
+- Volume Up stops at the configured maximum
+- Volume Down remains available while the current receiver volume is above the configured maximum
+- Lowering the maximum below the current receiver volume does not automatically change the current volume
+- Raw `onkyo_iscp.send` commands intentionally bypass the maximum-volume protection
+
+Result: **PASS**
+
+##### Zone 2 frame recognition
+
+Zone 2 was investigated using raw ISCP commands against the TX-SR608.
+Native Zone 2 control is intentionally outside the v0.8.0 scope.
+The purpose of the test was to identify normal Zone 2 notifications and
+prevent them from being reported as unknown ISCP frames.
+
+Observed responses:
+- `ZPWQSTN` returned `ZPW00` and `ZPW01`
+- `ZMTQSTN` returned `ZMT00` and `ZMT01`
+- `ZVLQSTN` returned `ZVL40`
+- `ZVL28` returned `ZVLN/A` in the tested receiver configuration
+- `SLZQSTN` returned `SLZ80`
+- Selecting FM with `SLZ24` returned `SLZ24`
+- `ZTNQSTN` returned `ZTNN/A`
+- `ZBLQSTN` returned `ZBLN/A`
+- `TUZQSTN` returned `TUZ08800`
+- `PRZQSTN` returned `PRZ01`
+
+The command groups `ZPW`, `ZMT`, `ZVL`, `ZTN`, `ZBL`, `SLZ`, `TUZ`
+and `PRZ` are recognized as known Zone 2 frames.
+
+`TUZ` and `PRZ` are handled separately from Main Zone tuner state and
+therefore no longer update the Main Zone frequency or tuner-preset entities.
+
+No native Zone 2 control entities are implemented.
+
+Result: **PASS**
+
+##### v0.8.0 result
+
+**PASS**
+
+The v0.8.0 feature scope is complete. Runtime-configurable maximum-volume
+protection operates as intended and known Zone 2 notifications are handled
+without adding unsupported Zone 2 control entities.
