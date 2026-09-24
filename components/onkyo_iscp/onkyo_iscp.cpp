@@ -1244,8 +1244,8 @@ bool OnkyoIscp::process_audio_command_(const std::string &command, const std::st
 }
 
 bool OnkyoIscp::process_tuner_command_(const std::string &command, const std::string &value) {
-  if (command == "TUN" || command == "TUZ") { this->process_tuner_frequency_(value); return true; }
-  if (command == "PRS" || command == "PRZ") { this->process_tuner_preset_(value); return true; }
+  if (command == "TUN") { this->process_tuner_frequency_(value); return true; }
+  if (command == "PRS") { this->process_tuner_preset_(value); return true; }
 
   if (command == "RDS") {
     if (value == "00") ESP_LOGD(TAG, "RDS display mode: Radio Text");
@@ -1330,6 +1330,34 @@ bool OnkyoIscp::process_video_command_(const std::string &command, const std::st
 }
 
 bool OnkyoIscp::process_auxiliary_command_(const std::string &command, const std::string &value) {
+  if (command == "ZPW") {
+    ESP_LOGD(TAG, "Zone 2 power notification: %s", value.c_str());
+    return true;
+  }
+  if (command == "ZMT") {
+    ESP_LOGD(TAG, "Zone 2 mute notification: %s", value.c_str());
+    return true;
+  }
+  if (command == "ZVL") {
+    ESP_LOGD(TAG, "Zone 2 volume notification: %s", value.c_str());
+    return true;
+  }
+  if (command == "ZTN") {
+    ESP_LOGD(TAG, "Zone 2 tone notification: %s", value.c_str());
+    return true;
+  }
+  if (command == "ZBL") {
+    ESP_LOGD(TAG, "Zone 2 balance notification: %s", value.c_str());
+    return true;
+  }
+  if (command == "TUZ") {
+    ESP_LOGD(TAG, "Zone 2 tuner frequency notification: %s", value.c_str());
+    return true;
+  }
+  if (command == "PRZ") {
+    ESP_LOGD(TAG, "Zone 2 tuner preset notification: %s", value.c_str());
+    return true;
+  }
   if (command == "TST") {
     if (value == "N/A") ESP_LOGD(TAG, "TST function is not available");
     else ESP_LOGD(TAG, "TST response: %s", value.c_str());
